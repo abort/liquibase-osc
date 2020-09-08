@@ -12,6 +12,7 @@ class DropIndexOnlineGenerator : BaseSqlGenerator<DropIndexOnlineStatement>() {
     override fun supports(statement: DropIndexOnlineStatement, database: Database): Boolean =
             database is OracleDatabase
 
+    // Only validate for oracle
     override fun validate(
             statement: DropIndexOnlineStatement,
             db: Database,
@@ -19,15 +20,15 @@ class DropIndexOnlineGenerator : BaseSqlGenerator<DropIndexOnlineStatement>() {
     ): ValidationErrors {
         val errors = ValidationErrors();
         errors.checkRequiredField("index", statement.index);
-        return errors;
+        return errors
     }
 
     override fun generate(stmt: DropIndexOnlineStatement,
                           db: Database,
                           generatorChain: SqlGeneratorChain<DropIndexOnlineStatement>): Array<Sql> = stmt.run {
-            val sb = StringBuilder("DROP INDEX ")
-            sb.append(db.escapeIndexName(null, schema, index))
-            sb.append(" ONLINE")
-            arrayOf(UnparsedSql(sb.toString()))
-        }
+        val sb = StringBuilder("DROP INDEX ")
+        sb.append(db.escapeIndexName(catalog, schema, index))
+        sb.append(" ONLINE")
+        arrayOf(UnparsedSql(sb.toString()))
+    }
 }

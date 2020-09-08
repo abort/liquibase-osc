@@ -3,8 +3,10 @@ package liquibase.ext.expand.add.column
 import liquibase.change.*
 import liquibase.change.core.AddColumnChange
 import liquibase.database.Database
+import liquibase.database.core.OracleDatabase
 import liquibase.exception.ValidationErrors
 import liquibase.ext.expand.ExpandableChange
+import liquibase.ext.expand.drop.column.PrepareDropColumnStatement
 import liquibase.statement.SqlStatement
 
 @DatabaseChange(
@@ -50,8 +52,18 @@ class AddColumnOnline() : ExpandableChange(), ChangeWithColumns<AddColumnConfig>
         columns = cols
     }
 
-    private fun AddColumnConfig.isExpand() : Boolean =
-            unusedTable || hasDefaultValue() || (constraints?.isNullable ?: false)
-    private fun AddColumnConfig.isContract() : Boolean = !isExpand()
+    override fun supportsRollback(db: Database): Boolean = when (db) {
+        is OracleDatabase -> true
+        else -> false
+    }
 
+    override fun generateRollbackStatements(db: Database): Array<SqlStatement> = arrayOf(
+        PrepareDropColumnStatement(catalogName, schemaName, tableName, columns.map { it.name }.toSet())
+    )
+
+
+    private fun AddColumnConfig.isExpand(): Boolean =
+            unusedTable || hasDefaultValue() || (constraints?.isNullable ?: false)
+
+    private fun AddColumnConfig.isContract(): Boolean = !isExpand()
 }

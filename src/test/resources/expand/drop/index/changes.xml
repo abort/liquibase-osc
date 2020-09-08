@@ -4,17 +4,17 @@
         xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xmlns:osc="http://www.liquibase.org/xml/ns/dbchangelog-ext"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd
         http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
 
 <!--    <property name="strategy" value="expand" dbms="oracle"/>-->
 
     <changeSet id="1" author="jorryt">
-        <osc:dropIndexOnline schema="my_schema" index="my_index"/>
+        <osc:dropIndexOnline schemaName="my_schema" indexName="my_index"/>
     </changeSet>
 
     <changeSet id="2" author="jorryt">
-        <osc:dropIndexOnline index="foo"/>
+        <osc:dropIndexOnline indexName="foo"/>
     </changeSet>
 
     <changeSet id="3" author="jorryt">

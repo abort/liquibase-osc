@@ -1,1 +1,2 @@
-liquibase.ext.osc.DropIndexOnline
+liquibase.ext.expand.drop.column.DropIndexOnline
+liquibase.ext.expand.drop.column.PrepareDropColumn

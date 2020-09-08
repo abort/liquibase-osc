@@ -1,3 +1,6 @@
+liquibase.ext.expand.drop.column.PrepareDropColumnGenerator
+liquibase.ext.expand.drop.index.DropIndexOnlineGenerator
+
 liquibase.ext.ora.addcheck.AddCheckGenerator
 liquibase.ext.ora.adddeferredprimarykey.AddDeferredPrimaryKeyGenerator
 liquibase.ext.ora.comment.CommentOnGenerator
