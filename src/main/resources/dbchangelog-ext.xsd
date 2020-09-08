@@ -49,4 +49,12 @@
             <xsd:attributeGroup ref="lb:dropColumnAttributes"/>
         </xsd:complexType>
     </xsd:element>
+
+    <!-- renameColumn -->
+    <xsd:element name="prepareRenameColumn">
+        <xsd:complexType>
+            <xsd:attributeGroup ref="lb:changeAttributes"/>
+            <xsd:attributeGroup ref="lb:renameColumnAttributes"/>
+        </xsd:complexType>
+    </xsd:element>
 </xsd:schema>
