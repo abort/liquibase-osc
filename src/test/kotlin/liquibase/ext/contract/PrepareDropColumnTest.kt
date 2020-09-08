@@ -32,13 +32,14 @@ internal class PrepareDropColumnTest {
         val successful = multiColumn.validate(db).errorMessages.toSet()
         Assertions.assertEquals(0, successful.count())
 
-        Assertions.assertNotEquals(0, invalidCombination.validate(db).errorMessages.toSet())
+        val errors2 = invalidCombination.validate(db).errorMessages.toSet()
+        Assertions.assertNotEquals(0, errors2.count())
     }
 
     @Test
     fun generate() {
         val sql = generator.generateSql(multiColumn, db)
-        Assertions.assertEquals("alter table my_table set unused column (col1,col2);", sql.first().toSql().trim().toLowerCase())
+        Assertions.assertEquals("alter table my_table set unused column (col1,col2) online;", sql.first().toSql().trim().toLowerCase())
     }
 
     @Test
@@ -57,12 +58,13 @@ internal class PrepareDropColumnTest {
     @Test
     fun generateSingle() {
         val sql = generator.generateSql(singleColumn, db)
-        Assertions.assertEquals("alter table my_table set unused column (col);", sql.first().toSql().trim().toLowerCase())
+        Assertions.assertEquals("alter table my_table set unused column (col) online;", sql.first().toSql().trim().toLowerCase())
     }
 
     @Test
     fun generateInvalidCombination() {
         val sql = generator.generateSql(invalidCombination, db)
         println(sql.first().toSql().trim().toLowerCase())
+
     }
 }

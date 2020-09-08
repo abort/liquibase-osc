@@ -24,7 +24,7 @@ class PrepareDropColumnGenerator : BaseSqlGenerator<PrepareDropColumnStatement>(
                     sb.append(',')
                 }
                 sb.deleteCharAt(sb.length - 1)
-                sb.append(");")
+                sb.append(") ONLINE;")
                 arrayOf(UnparsedSql(sb.toString()))
             }
             else -> TODO()

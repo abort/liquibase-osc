@@ -26,12 +26,17 @@ internal class PrepareRenameColumnTest {
     @Test
     fun checkOutputFull() {
         val sql = generator.generateSql(lb.changeSets.first().changes.first().generateStatements(db), db)
-        sql.forEach { println(it.toSql()) }
+        Assertions.assertTrue(sql.first().toSql().contains("ALTER TABLE"))
+        Assertions.assertTrue(sql[1].toSql().startsWith("UPDATE"))
+        Assertions.assertTrue(sql[2].toSql().startsWith("CREATE OR REPLACE TRIGGER"))
     }
 
     @Test
     fun checkRollbackFull() {
         val sql = generator.generateSql(lb.changeSets.first().changes.first().generateRollbackStatements(db), db)
-        sql.forEach { println(it.toSql()) }
+        val first = sql.first().toSql()
+        Assertions.assertTrue(first.startsWith("ALTER TABLE"))
+        Assertions.assertTrue(first.contains("SET UNUSED COLUMN"))
+        Assertions.assertTrue(sql[1].toSql().startsWith("DROP TRIGGER"))
     }
 }

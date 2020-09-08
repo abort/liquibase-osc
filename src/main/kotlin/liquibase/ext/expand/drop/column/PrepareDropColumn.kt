@@ -48,10 +48,13 @@ class PrepareDropColumn() : AbstractChange(), ChangeWithColumns<ColumnConfig> {
         if (columnName.isNullOrEmpty() && columnsProxy.isEmpty()) {
             errors.addError("Column or columns have to be provided")
         }
+        if (!columnName.isNullOrEmpty() && columnsProxy.isNotEmpty()) {
+            errors.addError("Column and columns are both provided, but are mutually exclusive")
+        }
         if (!supports(db)) {
             errors.addError("Database $db is not supported")
         }
-        return super.validate(db).addAll(errors)
+        return errors
     }
 
     private fun computedColumns(): Set<String?> = if (columnName.isNullOrEmpty()) {
