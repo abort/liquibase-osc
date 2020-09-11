@@ -8,7 +8,18 @@
         http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
 
 
+    <!-- valid -->
     <changeSet id="1" author="jorryt">
-        <osc:prepareRenameColumn tableName="my_table" oldColumnName="old_col" newColumnName="new_col" columnDataType="varchar(255)" nullable="false" />
+        <osc:dropUniqueConstraintOnline tableName="my_table" constraintName="my_unique"/>
+    </changeSet>
+
+    <!-- invalid -->
+    <changeSet id="2" author="jorryt">
+        <osc:dropUniqueConstraintOnline tableName="my_table"/>
+    </changeSet>
+
+    <!-- valid -->
+    <changeSet id="3" author="jorryt">
+        <osc:dropUniqueConstraintOnline schemaName="my_schema" tableName="my_table" constraintName="my_unique"/>
     </changeSet>
 </databaseChangeLog>

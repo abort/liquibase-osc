@@ -16,20 +16,17 @@ import okio.internal.commonAsUtf8ToByteArray
 
 
 class AddSyncTriggerGenerator : BaseSqlGenerator<AddSyncTriggerStatement>() {
-    // TODO: check if ACCESS_INTO_NULL is indeed thrown if rightColumn is non-existent. The insert / update should still succeed even though the exception was raised.
     // TODO: Assumes that left column is still filled in in code!
     override fun generate(stmt: AddSyncTriggerStatement, db: Database, generatorChain: SqlGeneratorChain<AddSyncTriggerStatement>): Array<Sql> = run {
         val sql = """
               CREATE OR REPLACE TRIGGER ${stmt.name} BEFORE INSERT OR UPDATE ON ${db.escapeTableName(null, null, stmt.tableName)} FOR EACH ROW
               BEGIN
-                if (:new.${stmt.rightColumn} is null) then
+                if (:new.${stmt.rightColumn} is null and :new.${stmt.leftColumn} is not null) then
                     :new.${stmt.rightColumn} := :new.${stmt.leftColumn};
                 end if;
-              END;
               EXCEPTION
                 WHEN ACCESS_INTO_NULL THEN
                     DBMS_OUTPUT.PUT_LINE('column ${stmt.rightColumn} is dropped');
-                    NULL;
               END;
         """.trimIndent()
         arrayOf(UnparsedSql(sql))

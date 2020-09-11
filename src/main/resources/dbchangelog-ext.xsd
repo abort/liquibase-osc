@@ -7,7 +7,20 @@
             http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd"
             elementFormDefault="qualified">
 
+    <!-- TODO: maybe get rid of catalogName as both postgres and oracle do not really use this -->
     <xsd:element name="dropIndexOnline">
+        <xsd:complexType>
+            <xsd:attributeGroup ref="lb:changeAttributes"/>
+
+            <!-- not using lb:tableNameAttribute due to 'tableName' being required, mistake in original liquibase schema -->
+            <xsd:attribute name="catalogName" type="xsd:string"/>
+            <xsd:attribute name="schemaName" type="xsd:string"/>
+            <xsd:attribute name="tableName" type="xsd:string"/>
+            <xsd:attributeGroup ref="lb:indexName"/>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="disableIndexOnline">
         <xsd:complexType>
             <xsd:attributeGroup ref="lb:changeAttributes"/>
 
@@ -55,6 +68,29 @@
         <xsd:complexType>
             <xsd:attributeGroup ref="lb:changeAttributes"/>
             <xsd:attributeGroup ref="lb:renameColumnAttributes"/>
+
+            <!-- extra guarantee (e.g. if original column is also not nullable... important to set if so!), default is nullable -->
+            <xsd:attribute name="nullable" type="lb:booleanExp"/>
+        </xsd:complexType>
+    </xsd:element>
+
+    <!-- finish renaming Column -->
+    <xsd:element name="finishRenameColumn">
+        <xsd:complexType>
+            <xsd:attributeGroup ref="lb:tableNameAttribute"/>
+            <xsd:attribute name="oldColumnName" type="xsd:string" use="required"/>
+            <xsd:attribute name="newColumnName" type="xsd:string" use="required"/>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="dropUniqueConstraintOnline">
+        <xsd:complexType>
+            <xsd:attributeGroup ref="lb:changeAttributes"/>
+            <xsd:attributeGroup ref="lb:tableNameAttribute"/>
+            <xsd:attribute name="constraintName" type="xsd:string" use="required"/>
+
+<!--             removed due to only required for Sybase -->
+<!--            <xsd:attribute name="uniqueColumns" type="xsd:string"/>-->
         </xsd:complexType>
     </xsd:element>
 </xsd:schema>

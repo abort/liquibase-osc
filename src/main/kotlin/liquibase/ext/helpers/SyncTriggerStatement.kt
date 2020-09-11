@@ -10,7 +10,7 @@ sealed class SyncTriggerStatement : AbstractSqlStatement() {
     abstract val rightColumn : String?
 
     val name by lazy {
-        Buffer().writeUtf8(tableName.orEmpty())
+        "sync_" + Buffer().writeUtf8(tableName.orEmpty())
                 .writeUtf8(leftColumn.orEmpty())
                 .writeUtf8(rightColumn.orEmpty())
                 .sha1().hex()

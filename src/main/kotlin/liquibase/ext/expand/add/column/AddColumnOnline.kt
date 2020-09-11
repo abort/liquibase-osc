@@ -29,7 +29,7 @@ class AddColumnOnline() : ExpandableChange(), ChangeWithColumns<AddColumnConfig>
     override fun validateAdditionalConstraints(db: Database): ValidationErrors = run {
         val errors = ValidationErrors()
         columns.filter { it.isContract() }.forEach {
-            errors.addError("${it.name} is not an expansion")
+            errors.addError("${it.name} column is not an expansion")
         }
         errors
     }

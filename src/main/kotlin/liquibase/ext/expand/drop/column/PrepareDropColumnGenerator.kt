@@ -7,6 +7,7 @@ import liquibase.ext.base.BaseSqlGenerator
 import liquibase.sql.Sql
 import liquibase.sql.UnparsedSql
 import liquibase.sqlgenerator.SqlGeneratorChain
+import liquibase.structure.core.Column
 
 class PrepareDropColumnGenerator : BaseSqlGenerator<PrepareDropColumnStatement>() {
     override fun generate(
@@ -20,7 +21,8 @@ class PrepareDropColumnGenerator : BaseSqlGenerator<PrepareDropColumnStatement>(
                 sb.append(db.escapeTableName(catalogName, schemaName, tableName))
                 sb.append(" SET UNUSED COLUMN (")
                 columns.forEach {
-                    sb.append(db.escapeColumnName(null, null, null, it))
+                    sb.append(db.escapeObjectName(it, Column::class.java))
+                    // sb.append(db.escapeColumnName(null, null, null, it))
                     sb.append(',')
                 }
                 sb.deleteCharAt(sb.length - 1)

@@ -9,6 +9,14 @@
 
 
     <changeSet id="1" author="jorryt">
-        <osc:prepareRenameColumn tableName="my_table" oldColumnName="old_col" newColumnName="new_col" columnDataType="varchar(255)" nullable="false" />
+        <osc:disableIndexOnline schemaName="my_schema" indexName="my_index"/>
+    </changeSet>
+
+    <changeSet id="2" author="jorryt">
+        <osc:disableIndexOnline indexName="foo"/>
+    </changeSet>
+
+    <changeSet id="3" author="jorryt">
+        <osc:disableIndexOnline />
     </changeSet>
 </databaseChangeLog>
