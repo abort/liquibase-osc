@@ -1,4 +1,4 @@
-package liquibase.ext.contract
+package liquibase.ext.neutral
 
 import liquibase.changelog.ChangeLogParameters
 import liquibase.database.core.OracleDatabase
@@ -10,8 +10,8 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
-internal class PrepareDropColumnTest {
-    private val changeLog = "contract/drop/column/prepare.xml"
+internal class SetUnusedColumnTest {
+    private val changeLog = "neutral/set-unused-column.xml"
     private val db = OracleDatabase()
     private val accessor = ClassLoaderResourceAccessor()
     private val lb = ChangeLogParserFactory.getInstance().getParser(changeLog, accessor).parse(changeLog,

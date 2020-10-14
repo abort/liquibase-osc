@@ -1,8 +1,8 @@
-package liquibase.ext.expand.drop.column
+package liquibase.ext.neutral
 
 import liquibase.statement.AbstractSqlStatement
 
-data class PrepareDropColumnStatement(
+data class SetUnusedColumnStatement(
         val catalogName: String?,
         val schemaName: String?,
         val tableName: String?,

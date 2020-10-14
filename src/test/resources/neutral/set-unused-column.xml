@@ -8,24 +8,24 @@
         http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
 
     <changeSet id="0" author="jorryt">
-        <osc:prepareDropColumn tableName="bla" />
+        <osc:setUnusedColumn tableName="bla" />
     </changeSet>
 
     <changeSet id="1" author="jorryt">
-        <osc:prepareDropColumn tableName="my_table">
+        <osc:setUnusedColumn tableName="my_table">
             <osc:column name="col1"/>
             <osc:column name="col2"/>
-        </osc:prepareDropColumn>
+        </osc:setUnusedColumn>
     </changeSet>
 
     <changeSet id="3" author="jorryt">
-        <osc:prepareDropColumn tableName="my_table" columnName="col"/>
+        <osc:setUnusedColumn tableName="my_table" columnName="col"/>
     </changeSet>
 
     <changeSet id="4" author="jorryt">
-        <osc:prepareDropColumn tableName="my_table" columnName="col1">
+        <osc:setUnusedColumn tableName="my_table" columnName="col1">
             <osc:column name="col2" />
             <osc:column name="col3" />
-        </osc:prepareDropColumn>
+        </osc:setUnusedColumn>
     </changeSet>
 </databaseChangeLog>

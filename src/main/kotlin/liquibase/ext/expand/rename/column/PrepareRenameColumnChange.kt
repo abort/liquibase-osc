@@ -4,7 +4,7 @@ import liquibase.change.ChangeMetaData
 import liquibase.change.DatabaseChange
 import liquibase.database.Database
 import liquibase.ext.expand.ExpandableChange
-import liquibase.ext.expand.drop.column.PrepareDropColumnStatement
+import liquibase.ext.neutral.SetUnusedColumnStatement
 import liquibase.ext.helpers.SyncTriggerStatement.*
 import liquibase.statement.DatabaseFunction
 import liquibase.statement.NotNullConstraint
@@ -48,7 +48,7 @@ class PrepareRenameColumnChange : ExpandableChange() {
 
     // TODO: check if this makes sense...
     override fun generateRollbackStatements(db: Database): Array<SqlStatement> = arrayOf(
-            PrepareDropColumnStatement(catalogName, schemaName, tableName, setOf(newColumnName)),
+            SetUnusedColumnStatement(catalogName, schemaName, tableName, setOf(newColumnName)),
             DropSyncTriggerStatement(tableName, oldColumnName, newColumnName)
     )
 

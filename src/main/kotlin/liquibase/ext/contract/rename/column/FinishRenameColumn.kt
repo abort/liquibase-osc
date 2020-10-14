@@ -5,7 +5,7 @@ import liquibase.change.ChangeMetaData
 import liquibase.change.DatabaseChange
 import liquibase.database.Database
 import liquibase.database.core.OracleDatabase
-import liquibase.ext.expand.drop.column.PrepareDropColumnStatement
+import liquibase.ext.neutral.SetUnusedColumnStatement
 import liquibase.ext.helpers.SyncTriggerStatement
 import liquibase.statement.SqlStatement
 
@@ -27,7 +27,7 @@ class FinishRenameColumn : AbstractChange() {
 
     override fun generateStatements(db: Database): Array<SqlStatement> = arrayOf(
             SyncTriggerStatement.DropSyncTriggerStatement(tableName, oldColumnName, newColumnName),
-            PrepareDropColumnStatement(catalogName, schemaName, tableName, setOf(oldColumnName))
+            SetUnusedColumnStatement(catalogName, schemaName, tableName, setOf(oldColumnName))
     )
 
     /**

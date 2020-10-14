@@ -1,4 +1,4 @@
-package liquibase.ext.expand.drop.column
+package liquibase.ext.neutral
 
 import liquibase.change.*
 import liquibase.database.Database
@@ -6,14 +6,13 @@ import liquibase.database.core.OracleDatabase
 import liquibase.exception.ValidationErrors
 import liquibase.statement.SqlStatement
 
-// TODO: check AbstractChange, ExpandableChange or ContractingChange
 @DatabaseChange(
-        name = "prepareDropColumn",
+        name = "setUnusedColumn",
         description = "Deprecate existing column online",
         priority = ChangeMetaData.PRIORITY_DEFAULT,
         appliesTo = ["column"]
 )
-class PrepareDropColumn() : AbstractChange(), ChangeWithColumns<ColumnConfig> {
+class SetUnusedColumn() : AbstractChange(), ChangeWithColumns<ColumnConfig> {
     var catalogName: String? = null
     var schemaName: String? = null
     var tableName: String? = null
@@ -34,14 +33,14 @@ class PrepareDropColumn() : AbstractChange(), ChangeWithColumns<ColumnConfig> {
         columnsProxy = cols
     }
 
-    override fun generateStatements(db: Database): Array<SqlStatement> = arrayOf(PrepareDropColumnStatement(
+    override fun generateStatements(db: Database): Array<SqlStatement> = arrayOf(SetUnusedColumnStatement(
             catalogName,
             schemaName,
             tableName,
             computedColumns()
     ))
 
-    override fun getConfirmationMessage(): String = "generated prepare drop column"
+    override fun getConfirmationMessage(): String = "generated set unused column"
     override fun validate(db: Database): ValidationErrors {
         val errors = ValidationErrors()
         errors.checkRequiredField("tableName", tableName)

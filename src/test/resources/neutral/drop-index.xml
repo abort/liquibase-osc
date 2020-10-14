@@ -7,19 +7,8 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd
         http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
 
-    <property  name="auto-online-ddl" value="true"/>
-    <!-- valid -->
+
     <changeSet id="1" author="jorryt">
-        <dropUniqueConstraint tableName="my_table" constraintName="my_unique"/>
-    </changeSet>
-
-    <!-- invalid -->
-    <changeSet id="2" author="jorryt">
-        <dropUniqueConstraint tableName="my_table"/>
-    </changeSet>
-
-    <!-- valid -->
-    <changeSet id="3" author="jorryt">
-        <dropUniqueConstraint schemaName="my_schema" tableName="my_table" constraintName="my_unique"/>
+        <dropIndex schemaName="my_schema" tableName="my_table" indexName="my_index"/>
     </changeSet>
 </databaseChangeLog>

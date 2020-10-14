@@ -53,7 +53,7 @@
         </xsd:complexType>
     </xsd:element>
 
-    <xsd:element name="prepareDropColumn">
+    <xsd:element name="setUnusedColumn">
         <xsd:complexType>
             <xsd:sequence>
                 <xsd:element name="column" minOccurs="0" maxOccurs="unbounded" type="lb:columnType"/>

@@ -6,7 +6,7 @@ import liquibase.database.Database
 import liquibase.database.core.OracleDatabase
 import liquibase.exception.ValidationErrors
 import liquibase.ext.expand.ExpandableChange
-import liquibase.ext.expand.drop.column.PrepareDropColumnStatement
+import liquibase.ext.neutral.SetUnusedColumnStatement
 import liquibase.statement.SqlStatement
 
 @DatabaseChange(
@@ -58,7 +58,7 @@ class AddColumnOnline() : ExpandableChange(), ChangeWithColumns<AddColumnConfig>
     }
 
     override fun generateRollbackStatements(db: Database): Array<SqlStatement> = arrayOf(
-        PrepareDropColumnStatement(catalogName, schemaName, tableName, columns.map { it.name }.toSet())
+        SetUnusedColumnStatement(catalogName, schemaName, tableName, columns.map { it.name }.toSet())
     )
 
 

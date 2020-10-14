@@ -23,7 +23,7 @@
     </changeSet>
 
     <changeSet id="2" author="jorryt">
-        <osc:prepareDropColumn tableName="my_table" columnName="my_column"/>
+        <osc:setUnusedColumn tableName="my_table" columnName="my_column"/>
     </changeSet>
 
 </databaseChangeLog>

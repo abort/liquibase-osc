@@ -1,4 +1,4 @@
-package liquibase.ext.expand.drop.column
+package liquibase.ext.neutral
 
 import liquibase.database.Database
 import liquibase.database.core.OracleDatabase
@@ -9,11 +9,11 @@ import liquibase.sql.UnparsedSql
 import liquibase.sqlgenerator.SqlGeneratorChain
 import liquibase.structure.core.Column
 
-class PrepareDropColumnGenerator : BaseSqlGenerator<PrepareDropColumnStatement>() {
+class SetUnusedColumnGenerator : BaseSqlGenerator<SetUnusedColumnStatement>() {
     override fun generate(
-            stmt: PrepareDropColumnStatement,
+            stmt: SetUnusedColumnStatement,
             db: Database,
-            generatorChain: SqlGeneratorChain<PrepareDropColumnStatement>
+            generatorChain: SqlGeneratorChain<SetUnusedColumnStatement>
     ): Array<Sql> = stmt.run {
         when (db) {
             is OracleDatabase -> {
@@ -22,7 +22,6 @@ class PrepareDropColumnGenerator : BaseSqlGenerator<PrepareDropColumnStatement>(
                 sb.append(" SET UNUSED COLUMN (")
                 columns.forEach {
                     sb.append(db.escapeObjectName(it, Column::class.java))
-                    // sb.append(db.escapeColumnName(null, null, null, it))
                     sb.append(',')
                 }
                 sb.deleteCharAt(sb.length - 1)
@@ -34,9 +33,9 @@ class PrepareDropColumnGenerator : BaseSqlGenerator<PrepareDropColumnStatement>(
     }
 
     override fun validate(
-            stmt: PrepareDropColumnStatement,
+            stmt: SetUnusedColumnStatement,
             db: Database,
-            generatorChain: SqlGeneratorChain<PrepareDropColumnStatement>
+            generatorChain: SqlGeneratorChain<SetUnusedColumnStatement>
     ): ValidationErrors {
         val errors = ValidationErrors()
         if (stmt.schemaName == null) errors.addWarning("Schema field is not provided")
