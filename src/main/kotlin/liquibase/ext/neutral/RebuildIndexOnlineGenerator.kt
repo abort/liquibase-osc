@@ -9,8 +9,8 @@ import liquibase.sql.UnparsedSql
 import liquibase.sqlgenerator.SqlGeneratorChain
 
 class RebuildIndexOnlineGenerator : BaseSqlGenerator<RebuildIndexOnlineStatement>() {
-    override fun supports(statement: RebuildIndexOnlineStatement, database: Database): Boolean =
-            database is OracleDatabase
+    override fun supports(stmt: RebuildIndexOnlineStatement, db: Database): Boolean =
+            db is OracleDatabase
 
     // Only validate for oracle
     override fun validate(

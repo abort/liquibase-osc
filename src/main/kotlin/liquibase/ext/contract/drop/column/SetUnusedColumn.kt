@@ -1,4 +1,4 @@
-package liquibase.ext.neutral
+package liquibase.ext.contract.drop.column
 
 import liquibase.change.*
 import liquibase.database.Database

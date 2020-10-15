@@ -1,4 +1,4 @@
-package liquibase.ext.neutral
+package liquibase.ext.contract.drop.column
 
 import liquibase.database.Database
 import liquibase.database.core.OracleDatabase
@@ -43,4 +43,6 @@ class SetUnusedColumnGenerator : BaseSqlGenerator<SetUnusedColumnStatement>() {
         errors.checkRequiredField("columns", stmt.columns)
         return errors
     }
+
+    override fun supports(stmt: SetUnusedColumnStatement, db: Database): Boolean = db is OracleDatabase
 }

@@ -3,11 +3,9 @@ package liquibase.ext.neutral.constraints
 import liquibase.changelog.ChangeLogParameters
 import liquibase.database.core.*
 import liquibase.exception.RollbackImpossibleException
-import liquibase.ext.neutral.DropUniqueConstraintOnline
 import liquibase.parser.ChangeLogParserFactory
 import liquibase.resource.ClassLoaderResourceAccessor
 import liquibase.sqlgenerator.SqlGeneratorFactory
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.Assertions.*

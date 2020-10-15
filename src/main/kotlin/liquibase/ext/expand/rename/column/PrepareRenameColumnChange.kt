@@ -4,7 +4,7 @@ import liquibase.change.ChangeMetaData
 import liquibase.change.DatabaseChange
 import liquibase.database.Database
 import liquibase.ext.expand.ExpandableChange
-import liquibase.ext.neutral.SetUnusedColumnStatement
+import liquibase.ext.contract.drop.column.SetUnusedColumnStatement
 import liquibase.ext.helpers.SyncTriggerStatement.*
 import liquibase.statement.DatabaseFunction
 import liquibase.statement.NotNullConstraint

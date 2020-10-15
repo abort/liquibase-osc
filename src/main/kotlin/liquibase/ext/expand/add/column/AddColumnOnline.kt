@@ -6,7 +6,7 @@ import liquibase.database.Database
 import liquibase.database.core.OracleDatabase
 import liquibase.exception.ValidationErrors
 import liquibase.ext.expand.ExpandableChange
-import liquibase.ext.neutral.SetUnusedColumnStatement
+import liquibase.ext.contract.drop.column.SetUnusedColumnStatement
 import liquibase.statement.SqlStatement
 
 @DatabaseChange(

@@ -9,8 +9,8 @@ import liquibase.sql.UnparsedSql
 import liquibase.sqlgenerator.SqlGeneratorChain
 
 class DropIndexOnlineGenerator : BaseSqlGenerator<DropIndexOnlineStatement>() {
-    override fun supports(statement: DropIndexOnlineStatement, database: Database): Boolean =
-            database is OracleDatabase
+    override fun supports(stmt: DropIndexOnlineStatement, db: Database): Boolean =
+            db is OracleDatabase
 
     // Only validate for oracle
     override fun validate(
