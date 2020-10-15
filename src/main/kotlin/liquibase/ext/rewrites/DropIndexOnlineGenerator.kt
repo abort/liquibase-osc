@@ -6,7 +6,6 @@ import liquibase.exception.ValidationErrors
 import liquibase.ext.base.RewriteBaseSqlGenerator
 import liquibase.ext.helpers.ArrayUtils.mapFirst
 import liquibase.ext.helpers.ArrayUtils.mapFirstIf
-import liquibase.ext.rewrites.WrapperStatement.DropIndexOnlineWrapperStatement
 import liquibase.sql.Sql
 import liquibase.sql.UnparsedSql
 import liquibase.sqlgenerator.SqlGeneratorChain

@@ -8,14 +8,13 @@ import liquibase.ext.helpers.ArrayUtils.mapFirstIf
 import liquibase.sql.Sql
 import liquibase.sql.UnparsedSql
 import liquibase.sqlgenerator.SqlGeneratorChain
-import liquibase.ext.rewrites.WrapperStatement.DropUniqueConstraintOnlineWrapperStatement
 
 class DropUniqueConstraintOnlineGenerator : RewriteBaseSqlGenerator<DropUniqueConstraintOnlineWrapperStatement>() {
     override fun generate(
             stmt: DropUniqueConstraintOnlineWrapperStatement,
             db: Database,
             generatorChain: SqlGeneratorChain<DropUniqueConstraintOnlineWrapperStatement>
-    ): Array<Sql> = generatorFactory.generateSql(stmt.original(), db).mapFirstIf(db is OracleDatabase) { e ->
+    ): Array<Sql> = generatorFactory.generateSql(stmt.original, db).mapFirstIf(db is OracleDatabase) { e ->
         UnparsedSql("${e.toSql()} ONLINE")
     }
 

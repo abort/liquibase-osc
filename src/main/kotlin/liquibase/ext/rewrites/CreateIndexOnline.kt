@@ -4,7 +4,6 @@ import liquibase.change.DatabaseChange
 import liquibase.change.core.CreateIndexChange
 import liquibase.database.Database
 import liquibase.database.core.OracleDatabase
-import liquibase.ext.rewrites.WrapperStatement.CreateIndexOnlineWrapperStatement
 import liquibase.statement.SqlStatement
 import liquibase.statement.core.CreateIndexStatement
 

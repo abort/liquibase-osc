@@ -4,7 +4,6 @@ import liquibase.change.DatabaseChange
 import liquibase.change.core.DropForeignKeyConstraintChange
 import liquibase.database.Database
 import liquibase.database.core.OracleDatabase
-import liquibase.ext.rewrites.WrapperStatement.DropForeignKeyOnlineWrapperStatement
 import liquibase.statement.SqlStatement
 import liquibase.statement.core.DropForeignKeyConstraintStatement
 

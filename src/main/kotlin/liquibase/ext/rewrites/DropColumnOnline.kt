@@ -5,7 +5,6 @@ import liquibase.change.core.DropColumnChange
 import liquibase.database.Database
 import liquibase.database.core.OracleDatabase
 import liquibase.ext.helpers.ArrayUtils.mapFirstIf
-import liquibase.ext.rewrites.WrapperStatement.DropColumnOnlineWrapperStatement
 import liquibase.statement.SqlStatement
 import liquibase.statement.core.DropColumnStatement
 

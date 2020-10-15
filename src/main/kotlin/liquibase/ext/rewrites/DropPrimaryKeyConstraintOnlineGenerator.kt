@@ -16,7 +16,7 @@ class DropPrimaryKeyConstraintOnlineGenerator() : RewriteBaseSqlGenerator<DropPr
             stmt: DropPrimaryKeyOnlineWrapperStatement,
             db: Database,
             generatorChain: SqlGeneratorChain<DropPrimaryKeyOnlineWrapperStatement>
-    ): Array<Sql> = generatorFactory.generateSql(stmt.original(), db).mapFirst(db) { db, e ->
+    ): Array<Sql> = generatorFactory.generateSql(stmt.original, db).mapFirst(db) { db, e ->
         when (db) {
             is OracleDatabase -> UnparsedSql("${e.toSql()} ONLINE")
             else -> TODO("This should not occur as wrapper statement should not be generated if not supported")
