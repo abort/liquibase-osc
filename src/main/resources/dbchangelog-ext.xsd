@@ -6,53 +6,6 @@
             xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
             http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd"
             elementFormDefault="qualified">
-
-    <!-- TODO: maybe get rid of catalogName as both postgres and oracle do not really use this -->
-    <xsd:element name="dropIndexOnline">
-        <xsd:complexType>
-            <xsd:attributeGroup ref="lb:changeAttributes"/>
-
-            <!-- not using lb:tableNameAttribute due to 'tableName' being required, mistake in original liquibase schema -->
-            <xsd:attribute name="catalogName" type="xsd:string"/>
-            <xsd:attribute name="schemaName" type="xsd:string"/>
-            <xsd:attribute name="tableName" type="xsd:string"/>
-            <xsd:attributeGroup ref="lb:indexName"/>
-        </xsd:complexType>
-    </xsd:element>
-
-    <xsd:element name="disableIndexOnline">
-        <xsd:complexType>
-            <xsd:attributeGroup ref="lb:changeAttributes"/>
-
-            <!-- not using lb:tableNameAttribute due to 'tableName' being required, mistake in original liquibase schema -->
-            <xsd:attribute name="catalogName" type="xsd:string"/>
-            <xsd:attribute name="schemaName" type="xsd:string"/>
-            <xsd:attribute name="tableName" type="xsd:string"/>
-            <xsd:attributeGroup ref="lb:indexName"/>
-        </xsd:complexType>
-    </xsd:element>
-
-    <!-- Children for addColumnOnline -->
-    <xsd:element name="addColumnOnline">
-        <!-- Copied because Liquibase does not provide a 'name' to the complex type -->
-        <xsd:complexType>
-            <xsd:sequence>
-                <xsd:element name="column" minOccurs="1" maxOccurs="unbounded">
-                    <xsd:complexType>
-                        <xsd:complexContent mixed="true">
-                            <xsd:extension base="lb:columnType">
-                                <xsd:attribute name="beforeColumn" type="xsd:string"/>
-                                <xsd:attribute name="afterColumn" type="xsd:string"/>
-                                <xsd:attribute name="position" type="xsd:integer"/>
-                            </xsd:extension>
-                        </xsd:complexContent>
-                    </xsd:complexType>
-                </xsd:element>
-            </xsd:sequence>
-            <xsd:attributeGroup ref="lb:tableNameAttribute"/>
-        </xsd:complexType>
-    </xsd:element>
-
     <xsd:element name="setUnusedColumn">
         <xsd:complexType>
             <xsd:sequence>
@@ -80,17 +33,6 @@
             <xsd:attributeGroup ref="lb:tableNameAttribute"/>
             <xsd:attribute name="oldColumnName" type="xsd:string" use="required"/>
             <xsd:attribute name="newColumnName" type="xsd:string" use="required"/>
-        </xsd:complexType>
-    </xsd:element>
-
-    <xsd:element name="dropUniqueConstraintOnline">
-        <xsd:complexType>
-            <xsd:attributeGroup ref="lb:changeAttributes"/>
-            <xsd:attributeGroup ref="lb:tableNameAttribute"/>
-            <xsd:attribute name="constraintName" type="xsd:string" use="required"/>
-
-<!--             removed due to only required for Sybase -->
-<!--            <xsd:attribute name="uniqueColumns" type="xsd:string"/>-->
         </xsd:complexType>
     </xsd:element>
 </xsd:schema>
