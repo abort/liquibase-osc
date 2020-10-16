@@ -17,15 +17,17 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import kotlin.reflect.KClass
 
-// TODO make this generalizable and do it for all online rewrites
-class DropIndexOnlineTest {
+abstract class RewriteIntegrationTest(
+        val rewriteChangeLogXml: String,
+        val originalChangeLogXml: String,
+        val changeClass : KClass<out RewritableChange>,
+        val checkOnlineOracleDDLString: (String) -> Unit
+) {
     companion object {
         private const val ChangeLogExtensionXml = ".xml"
     }
-
-    private val rewriteChangeLogXml = "rewrites/drop/index/rewrite.xml"
-    private val originalChangeLogXml = "rewrites/drop/index/original.xml"
 
     private val accessor = ClassLoaderResourceAccessor()
     private val generator = SqlGeneratorFactory.getInstance()
@@ -47,7 +49,7 @@ class DropIndexOnlineTest {
     private fun checkSingleAndCorrectSubType(changeSets : List<ChangeSet>) {
         assertEquals(1, changeSets.size)
         assertEquals(1, changeSets[0].changes.size)
-        assertThat(changeSets.first().changes.first(), instanceOf(DropIndexOnline::class.java))
+        assertThat(changeSets.first().changes.first(), instanceOf(changeClass.java))
     }
 
     @Test
@@ -59,7 +61,7 @@ class DropIndexOnlineTest {
     private fun checkParsedToCorrectChange(log: DatabaseChangeLog) {
         assertEquals(1, log.changeSets.size)
         assertEquals(1, log.changeSets[0].changes.size)
-        assertThat(log.changeSets.first().changes.first(), instanceOf(DropIndexOnline::class.java))
+        assertThat(log.changeSets.first().changes.first(), instanceOf(changeClass.java))
     }
 
     @Test
@@ -67,8 +69,8 @@ class DropIndexOnlineTest {
         val db = getCompatibleOracleSpy()
         val log = xmlParser.parse(rewriteChangeLogXml, ChangeLogParameters(db), accessor)
         val change = log.changeSets.first().changes.first()
-        assertThat(generator.generateSql(change, db).joinToString(separator = "\n") { it.toSql() },
-                endsWithIgnoringCase("online"))
+
+        checkOnlineOracleDDLString(generator.generateSql(change, db).joinToString(separator = "\n") { it.toSql() })
     }
 
     @Test

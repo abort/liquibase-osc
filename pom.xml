@@ -21,6 +21,7 @@
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
         <hamcrest.version>2.2</hamcrest.version>
         <io.mockk.version>1.10.2</io.mockk.version>
+        <snakeyaml.version>1.27</snakeyaml.version>
     </properties>
 
 
@@ -56,6 +57,13 @@
             <groupId>io.mockk</groupId>
             <artifactId>mockk</artifactId>
             <version>${io.mockk.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>${snakeyaml.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
