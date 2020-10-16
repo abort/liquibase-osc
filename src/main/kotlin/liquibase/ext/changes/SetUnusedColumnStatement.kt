@@ -1,4 +1,4 @@
-package liquibase.ext.contract.drop.column
+package liquibase.ext.changes
 
 import liquibase.statement.AbstractSqlStatement
 

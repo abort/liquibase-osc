@@ -16,28 +16,34 @@ interface RewritableChange {
         private const val PropertyRewriteDDLDefaultValue = "false"
     }
 
-    fun shouldRewrite(changeSet : ChangeSet) : Boolean =
-            PropertyUtils.getProperty(changeSet, PropertyRewriteDDL, PropertyRewriteDDLDefaultValue).toBoolean()
+    fun shouldRewrite(changeSet: ChangeSet?): Boolean = if (changeSet == null) {
+        false
+    } else {
+        PropertyUtils.getProperty(changeSet, PropertyRewriteDDL, PropertyRewriteDDLDefaultValue).toBoolean()
+    }
 
 
     fun Array<SqlStatement>.rewriteStatements(
-            changeSet: ChangeSet,
-            db : Database,
+            changeSet: ChangeSet?,
+            db: Database,
             f: (SqlStatement) -> SqlStatement
-    ) : Array<SqlStatement> =
-        mapIf(supportsOnlineRewriteForDatabase(db) && shouldRewrite(changeSet)) {
-            f(it)
-        }
+    ): Array<SqlStatement> =
+            mapIf(supportsOnlineRewriteForDatabase(db) && shouldRewrite(changeSet)) {
+                f(it)
+            }
 
     /**
      * A function that determines whether online translations are possible for this change and database
      */
-    fun supportsOnlineRewriteForDatabase(db : Database) : Boolean
+    fun supportsOnlineRewriteForDatabase(db: Database): Boolean
 
     /**
      * A provided function that can check whether it is the correct Oracle version to support online DDL
      */
-    fun Database.isRequiredEnterpriseVersionIfOracle() : Boolean = this !is OracleDatabase ||
-                    (databaseProductName.contains(OracleRequiredProductInfix, ignoreCase = true)
-                            && databaseMajorVersion >= OracleRequiredMajorVersion)
+    fun Database.isRequiredEnterpriseVersionIfOracle(): Boolean = run {
+        println("product: ${databaseProductName}\nversion: ${databaseMajorVersion}")
+        this !is OracleDatabase ||
+                ((databaseProductVersion?.contains(OracleRequiredProductInfix, ignoreCase = true) ?: false)
+                        && databaseMajorVersion >= OracleRequiredMajorVersion)
+    }
 }

@@ -5,10 +5,9 @@ import liquibase.change.DatabaseChange
 import liquibase.change.core.DropColumnChange
 import liquibase.database.Database
 import liquibase.database.core.OracleDatabase
-import liquibase.ext.contract.drop.column.SetUnusedColumnStatement
+import liquibase.ext.changes.SetUnusedColumnStatement
 import liquibase.statement.SqlStatement
 import liquibase.statement.core.DropColumnStatement
-import liquibase.structure.core.Column
 
 @DatabaseChange(
         name = "dropColumn",
@@ -31,5 +30,7 @@ class DropColumnOnline : DropColumnChange(), RewritableChange {
 
     override fun supportsOnlineRewriteForDatabase(db: Database): Boolean = db.isRequiredEnterpriseVersionIfOracle()
 
-    private val isSingleColumn : Boolean = columns != null && columns.size == 1
+    private val isSingleColumn : Boolean by lazy {
+        columns != null && columns.size == 1
+    }
 }
