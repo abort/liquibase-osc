@@ -14,17 +14,10 @@ import liquibase.statement.core.CreateIndexStatement
         appliesTo = ["index"]
 )
 class CreateIndexOnline : CreateIndexChange(), RewritableChange {
-    override fun generateStatements(db: Database): Array<SqlStatement> = run {
-        println("generate statement for $db:")
-        println("\tinfo: ${db.databaseProductVersion}")
-        println("\tinfo: ${db.databaseMajorVersion}")
-        println("\tinfo: ${db.databaseProductName}")
-        println("\tinfo: ${changeSet?.changes?.map { it.generateCheckSum() }}")
-        super.generateStatements(db).rewriteStatements(changeSet, db) {
-            when (it) {
-                is CreateIndexStatement -> CreateIndexOnlineWrapperStatement(it)
-                else -> it
-            }
+    override fun generateStatements(db: Database): Array<SqlStatement> = super.generateStatements(db).rewriteStatements(changeSet, db) {
+        when (it) {
+            is CreateIndexStatement -> CreateIndexOnlineWrapperStatement(it)
+            else -> it
         }
     }
 
