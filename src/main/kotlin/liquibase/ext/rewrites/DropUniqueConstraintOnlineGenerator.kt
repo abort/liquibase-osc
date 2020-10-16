@@ -4,6 +4,7 @@ import liquibase.database.Database
 import liquibase.database.core.OracleDatabase
 import liquibase.exception.ValidationErrors
 import liquibase.ext.base.RewriteBaseSqlGenerator
+import liquibase.ext.helpers.ArrayUtils.mapFirst
 import liquibase.ext.helpers.ArrayUtils.mapFirstIf
 import liquibase.sql.Sql
 import liquibase.sql.UnparsedSql
@@ -14,8 +15,11 @@ class DropUniqueConstraintOnlineGenerator : RewriteBaseSqlGenerator<DropUniqueCo
             stmt: DropUniqueConstraintOnlineWrapperStatement,
             db: Database,
             generatorChain: SqlGeneratorChain<DropUniqueConstraintOnlineWrapperStatement>
-    ): Array<Sql> = generatorFactory.generateSql(stmt.original, db).mapFirstIf(db is OracleDatabase) { e ->
-        UnparsedSql("${e.toSql()} ONLINE")
+    ): Array<Sql> = generatorFactory.generateSql(stmt.original, db).mapFirst(db) { db, e ->
+        when (db) {
+            is OracleDatabase -> UnparsedSql("${e.toSql()} ONLINE")
+            else -> e
+        }
     }
 
     override fun validateWrapper(

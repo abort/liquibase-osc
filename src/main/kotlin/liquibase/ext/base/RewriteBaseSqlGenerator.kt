@@ -5,12 +5,11 @@ import liquibase.exception.ValidationErrors
 import liquibase.ext.rewrites.WrapperStatement
 import liquibase.sql.Sql
 import liquibase.sqlgenerator.SqlGeneratorChain
-import liquibase.statement.AbstractSqlStatement
 import liquibase.statement.SqlStatement
 
 abstract class RewriteBaseSqlGenerator<T> : BaseSqlGenerator<T>() where T : SqlStatement, T : WrapperStatement {
     protected fun generateOriginal(stmt : T, db : Database): Array<Sql> = generatorFactory.generateSql(stmt.original, db)
-    // No support if it is false
+    // No support if the original LB has no support for it
     override fun supports(stmt: T, db: Database): Boolean = generatorFactory.supports(stmt.original, db)
 
     // Delegate validations to original generators

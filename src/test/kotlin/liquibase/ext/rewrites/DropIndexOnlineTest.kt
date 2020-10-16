@@ -1,5 +1,11 @@
 package liquibase.ext.rewrites
 
+import io.mockk.MockKAnnotations
+import io.mockk.every
+import io.mockk.impl.annotations.MockK
+import io.mockk.impl.annotations.SpyK
+import io.mockk.mockk
+import io.mockk.spyk
 import liquibase.change.Change
 import liquibase.change.core.DropIndexChange
 import liquibase.changelog.ChangeLogParameters
@@ -23,12 +29,12 @@ class DropIndexOnlineTest {
     private val rewriteChangeLog = "rewrites/drop/index/rewrite.xml"
     private val originalChangeLog = "rewrites/drop/index/original.xml"
 
-
-    private val db = OracleDatabase()
     private val accessor = ClassLoaderResourceAccessor()
     private val generator = SqlGeneratorFactory.getInstance()
 
     private val xmlParser = ChangeLogParserFactory.getInstance().getParser("xml", accessor)
+
+
 
     @BeforeEach
     fun init() {
@@ -37,22 +43,23 @@ class DropIndexOnlineTest {
 
     @Test
     fun `Change should be of the correct subtype when rewrite is enabled`() {
-        val log = xmlParser.parse(rewriteChangeLog, ChangeLogParameters(db), accessor)
-        assertEquals(1, log.changeSets.size)
-        assertEquals(1, log.changeSets[0].changes.size)
-        assertThat(log.changeSets.first().changes.first(), instanceOf(DropIndexChange::class.java))
-    }
-
-    @Test
-    fun `Change should be of the correct subtype when rewrite is disabled`() {
-        val log = xmlParser.parse(originalChangeLog, ChangeLogParameters(db), accessor)
+        val log = xmlParser.parse(rewriteChangeLog, ChangeLogParameters(getCompatibleOracleSpy()), accessor)
         assertEquals(1, log.changeSets.size)
         assertEquals(1, log.changeSets[0].changes.size)
         assertThat(log.changeSets.first().changes.first(), instanceOf(DropIndexOnline::class.java))
     }
 
     @Test
-    fun `Change statement for online DDL is supposed to generate Oracle code`() {
+    fun `Change should be of the correct subtype when rewrite is disabled`() {
+        val log = xmlParser.parse(originalChangeLog, ChangeLogParameters(getCompatibleOracleSpy()), accessor)
+        assertEquals(1, log.changeSets.size)
+        assertEquals(1, log.changeSets[0].changes.size)
+        assertThat(log.changeSets.first().changes.first(), instanceOf(DropIndexOnline::class.java))
+    }
+
+    @Test
+    fun `Change statement for online DDL is supposed to generate Oracle code when compatible`() {
+        val db = getCompatibleOracleSpy()
         val log = xmlParser.parse(rewriteChangeLog, ChangeLogParameters(db), accessor)
         val change = log.changeSets.first().changes.first()
         assertThat(generator.generateSql(change, db).joinToString(separator = "\n") { it.toSql() },
@@ -60,8 +67,15 @@ class DropIndexOnlineTest {
     }
 
     @Test
-    fun `Change statement for online DDL is supposed to generate the same code as usual when database is not supported`() {
-        val db = MySQLDatabase()
+    fun `Change statement for online DDL is supposed to generate the same code as usual when Oracle is incompatible`() =
+            checkNoRewrites(getIncompatibleOracleSpy())
+
+
+    @Test
+    fun `Change statement for online DDL is supposed to generate the same code as usual when database is not supported`() =
+            checkNoRewrites(MySQLDatabase())
+
+    private fun checkNoRewrites(db: Database) {
         val log = xmlParser.parse(rewriteChangeLog, ChangeLogParameters(db), accessor)
         val change = log.changeSets.first().changes.first()
         val proxiedGen = genSqlString(change, db)
@@ -73,6 +87,7 @@ class DropIndexOnlineTest {
 
     @Test
     fun `Change statement that will be rewritten will be deemed valid`() {
+        val db = getCompatibleOracleSpy()
         val log = xmlParser.parse(rewriteChangeLog, ChangeLogParameters(db), accessor)
         val errors = log.changeSets.first().changes.flatMap { it.validate(db).errorMessages.toSet() }
         assertEquals(0, errors.count())
@@ -80,4 +95,14 @@ class DropIndexOnlineTest {
 
     private fun genSqlString(change : Change, db : Database) : String =
             generator.generateSql(change, db).joinToString(separator = "\n") { it.toSql() }.trim()
+
+    private fun getCompatibleOracleSpy() = spyk<OracleDatabase>().apply {
+        every { databaseMajorVersion } returns 12
+        every { databaseProductName } returns "Oracle Database 12c Enterprise Edition Release"
+    }
+
+    private fun getIncompatibleOracleSpy() = spyk<OracleDatabase>().apply {
+        every { databaseMajorVersion } returns 11
+        every { databaseProductName } returns "Oracle Database 11g"
+    }
 }

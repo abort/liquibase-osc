@@ -1,18 +1,13 @@
 package liquibase.ext.helpers
 
-import com.datical.liquibase.ext.storedlogic.trigger.Trigger
 import liquibase.database.Database
 import liquibase.database.core.OracleDatabase
 import liquibase.exception.ValidationErrors
 import liquibase.ext.base.BaseSqlGenerator
-import liquibase.ext.helpers.SyncTriggerStatement.*
+import liquibase.ext.helpers.SyncTriggerStatement.AddSyncTriggerStatement
 import liquibase.sql.Sql
 import liquibase.sql.UnparsedSql
 import liquibase.sqlgenerator.SqlGeneratorChain
-import okio.Buffer
-import okio.ByteString
-import okio.ByteString.Companion.encodeUtf8
-import okio.internal.commonAsUtf8ToByteArray
 
 
 class AddSyncTriggerGenerator : BaseSqlGenerator<AddSyncTriggerStatement>() {

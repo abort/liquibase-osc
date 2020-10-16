@@ -19,7 +19,7 @@ class DropColumnOnlineGenerator : RewriteBaseSqlGenerator<DropColumnOnlineWrappe
     ): Array<Sql> = generateOriginal(stmt, db).mapFirst(db) { db, e ->
         when (db) {
             is OracleDatabase -> UnparsedSql("${e.toSql()} ONLINE")
-            else -> TODO("This should not occur as wrapper statement should not be generated if not supported")
+            else -> e
         }
     }
 }

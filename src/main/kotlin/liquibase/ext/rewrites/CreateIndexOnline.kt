@@ -1,5 +1,6 @@
 package liquibase.ext.rewrites
 
+import liquibase.change.ChangeMetaData
 import liquibase.change.DatabaseChange
 import liquibase.change.core.CreateIndexChange
 import liquibase.database.Database
@@ -10,7 +11,7 @@ import liquibase.statement.core.CreateIndexStatement
 @DatabaseChange(
         name = "createIndex",
         description = "Creates an index on an existing column or set of columns (online if supported and enabled)",
-        priority = 2,
+        priority = ChangeMetaData.PRIORITY_DEFAULT + 1,
         appliesTo = ["index"]
 )
 class CreateIndexOnline : CreateIndexChange(), RewritableChange {
@@ -21,5 +22,5 @@ class CreateIndexOnline : CreateIndexChange(), RewritableChange {
             }
         }
 
-    override fun supportsOnlineRewriteForDatabase(db: Database): Boolean = db is OracleDatabase
+    override fun supportsOnlineRewriteForDatabase(db: Database): Boolean = db.isRequiredEnterpriseVersionIfOracle()
 }

@@ -17,7 +17,8 @@ class CreateIndexOnlineGenerator : RewriteBaseSqlGenerator<CreateIndexOnlineWrap
     ): Array<Sql> = generateOriginal(stmt, db).mapFirst(db) { db, e ->
         when (db) {
             is OracleDatabase -> UnparsedSql("${e.toSql()} ONLINE")
-            else -> TODO("This should not occur as wrapper statement should not be generated if not supported")
+            else -> e
         }
     }
+    // Unfortunately we do not have partial functions so we basically return the identity in case of no match
 }
