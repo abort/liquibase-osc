@@ -23,5 +23,5 @@ class DropUniqueConstraintOnline : DropUniqueConstraintChange(), RewritableChang
                 }
             }
 
-    override fun supportsOnlineRewriteForDatabase(db: Database): Boolean = db.isRequiredEnterpriseVersionIfOracle()
+    override fun supportsOnlineRewriteForDatabase(db: Database): Boolean = db.isRequiredOracleEnterpriseVersion()
 }

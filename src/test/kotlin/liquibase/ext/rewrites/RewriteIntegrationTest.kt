@@ -82,8 +82,9 @@ abstract class RewriteIntegrationTest(
     fun `Change statement for online DDL should generate the same code as usual when database is not supported`() =
             checkNoRewrites(MySQLDatabase())
 
-    private fun checkNoRewrites(db: Database) {
-        val log = xmlParser.parse(rewriteChangeLogXml, ChangeLogParameters(db), accessor)
+    protected fun checkNoRewrites(db: Database) = checkNoRewrites(rewriteChangeLogXml, db)
+    protected fun checkNoRewrites(xmlPath : String, db: Database) {
+        val log = xmlParser.parse(xmlPath, ChangeLogParameters(db), accessor)
         val change = log.changeSets.first().changes.first()
         val proxiedGen = genSqlString(change, db)
         generator.unregister(DropIndexOnlineGenerator::class.java)
@@ -105,11 +106,11 @@ abstract class RewriteIntegrationTest(
 
     protected fun getCompatibleOracleSpy() = spyk<OracleDatabase>().apply {
         every { databaseMajorVersion } returns 12
-        every { databaseProductName } returns "Oracle Database 12c Enterprise Edition Release"
+        every { databaseProductVersion } returns "Oracle Database 12c Enterprise Edition Release"
     }
 
     protected fun getIncompatibleOracleSpy() = spyk<OracleDatabase>().apply {
         every { databaseMajorVersion } returns 11
-        every { databaseProductName } returns "Oracle Database 11g"
+        every { databaseProductVersion } returns "Oracle Database 11g Community Edition Release"
     }
 }

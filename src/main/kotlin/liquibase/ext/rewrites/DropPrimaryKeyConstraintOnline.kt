@@ -21,5 +21,5 @@ class DropPrimaryKeyConstraintOnline : DropPrimaryKeyChange(), RewritableChange 
         }
     }
 
-    override fun supportsOnlineRewriteForDatabase(db: Database): Boolean = db.isRequiredEnterpriseVersionIfOracle()
+    override fun supportsOnlineRewriteForDatabase(db: Database): Boolean = db.isRequiredOracleEnterpriseVersion()
 }

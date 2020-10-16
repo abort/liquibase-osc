@@ -40,10 +40,7 @@ interface RewritableChange {
     /**
      * A provided function that can check whether it is the correct Oracle version to support online DDL
      */
-    fun Database.isRequiredEnterpriseVersionIfOracle(): Boolean = run {
-        println("product: ${databaseProductName}\nversion: ${databaseMajorVersion}")
-        this !is OracleDatabase ||
-                ((databaseProductVersion?.contains(OracleRequiredProductInfix, ignoreCase = true) ?: false)
-                        && databaseMajorVersion >= OracleRequiredMajorVersion)
-    }
+    fun Database.isRequiredOracleEnterpriseVersion(): Boolean = this is OracleDatabase &&
+                (databaseProductVersion?.contains(OracleRequiredProductInfix, ignoreCase = true) ?: false)
+                        && databaseMajorVersion >= OracleRequiredMajorVersion
 }
