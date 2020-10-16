@@ -29,11 +29,11 @@ abstract class RewriteIntegrationTest(
         private const val ChangeLogExtensionXml = ".xml"
     }
 
-    private val accessor = ClassLoaderResourceAccessor()
-    private val generator = SqlGeneratorFactory.getInstance()
+    protected val accessor = ClassLoaderResourceAccessor()
+    protected val generator = SqlGeneratorFactory.getInstance()
 
-    private val parserFactory = ChangeLogParserFactory.getInstance()
-    private val xmlParser = parserFactory.getParser(ChangeLogExtensionXml, accessor)
+    protected val parserFactory = ChangeLogParserFactory.getInstance()
+    protected val xmlParser = parserFactory.getParser(ChangeLogExtensionXml, accessor)
 
     @BeforeEach
     fun init() {
@@ -41,7 +41,7 @@ abstract class RewriteIntegrationTest(
     }
 
     @Test
-    fun `Change should be of the correct subtype when rewrite is enabled in XML changelog`() {
+    fun `Change should be of the correct subtype when rewrite is enabled`() {
         val log = xmlParser.parse(rewriteChangeLogXml, ChangeLogParameters(getCompatibleOracleSpy()), accessor)
         checkSingleAndCorrectSubType(log.changeSets)
     }
@@ -53,7 +53,7 @@ abstract class RewriteIntegrationTest(
     }
 
     @Test
-    fun `Change should be of the correct subtype when rewrite is disabled in XML changelog`() {
+    fun `Change should be of the correct subtype when rewrite is disabled`() {
         val log = xmlParser.parse(originalChangeLogXml, ChangeLogParameters(getCompatibleOracleSpy()), accessor)
         checkParsedToCorrectChange(log)
     }
@@ -65,7 +65,7 @@ abstract class RewriteIntegrationTest(
     }
 
     @Test
-    fun `Change statement for online DDL is supposed to generate Oracle code when compatible with XML changelog`() {
+    fun `Change statement for online DDL should generate Oracle code when compatible`() {
         val db = getCompatibleOracleSpy()
         val log = xmlParser.parse(rewriteChangeLogXml, ChangeLogParameters(db), accessor)
         val change = log.changeSets.first().changes.first()
@@ -74,12 +74,12 @@ abstract class RewriteIntegrationTest(
     }
 
     @Test
-    fun `Change statement for online DDL is supposed to generate the same code as usual when Oracle is incompatible`() =
+    fun `Change statement for online DDL should generate the same code as usual when Oracle is incompatible`() =
             checkNoRewrites(getIncompatibleOracleSpy())
 
 
     @Test
-    fun `Change statement for online DDL is supposed to generate the same code as usual when database is not supported`() =
+    fun `Change statement for online DDL should generate the same code as usual when database is not supported`() =
             checkNoRewrites(MySQLDatabase())
 
     private fun checkNoRewrites(db: Database) {
@@ -93,7 +93,7 @@ abstract class RewriteIntegrationTest(
     }
 
     @Test
-    fun `Change statement that will be rewritten will be deemed valid`() {
+    fun `Change statement that will be rewritten should be valid`() {
         val db = getCompatibleOracleSpy()
         val log = xmlParser.parse(rewriteChangeLogXml, ChangeLogParameters(db), accessor)
         val errors = log.changeSets.first().changes.flatMap { it.validate(db).errorMessages.toSet() }
@@ -103,12 +103,12 @@ abstract class RewriteIntegrationTest(
     private fun genSqlString(change : Change, db : Database) : String =
             generator.generateSql(change, db).joinToString(separator = "\n") { it.toSql() }.trim()
 
-    private fun getCompatibleOracleSpy() = spyk<OracleDatabase>().apply {
+    protected fun getCompatibleOracleSpy() = spyk<OracleDatabase>().apply {
         every { databaseMajorVersion } returns 12
         every { databaseProductName } returns "Oracle Database 12c Enterprise Edition Release"
     }
 
-    private fun getIncompatibleOracleSpy() = spyk<OracleDatabase>().apply {
+    protected fun getIncompatibleOracleSpy() = spyk<OracleDatabase>().apply {
         every { databaseMajorVersion } returns 11
         every { databaseProductName } returns "Oracle Database 11g"
     }

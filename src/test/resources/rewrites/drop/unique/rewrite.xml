@@ -5,7 +5,9 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
 
-    <changeSet id="drop-pk-original" author="jorryt">
-        <dropPrimaryKey constraintName="my_pk" dropIndex="false" schemaName="my_schema" tableName="my_table"/>
+    <property name="auto-online-ddl" value="true"/>
+
+    <changeSet id="drop-unique-rewrite" author="jorryt">
+        <dropUniqueConstraint constraintName="my_unique" tableName="my_table" schemaName="my_schema" uniqueColumns="my_col1, my_col_2"/>
     </changeSet>
 </databaseChangeLog>

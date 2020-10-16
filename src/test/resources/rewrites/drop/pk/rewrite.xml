@@ -2,14 +2,12 @@
 
 <databaseChangeLog
         xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
-        xmlns:osc="http://www.liquibase.org/xml/ns/dbchangelog-ext"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd
-        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
 
     <property name="auto-online-ddl" value="true"/>
 
     <changeSet id="drop-pk-rewrite" author="jorryt">
-        <dropPrimaryKey constraintName="my_pk" dropIndex="true" schemaName="my_schema" tableName="my_table"/>
+        <dropPrimaryKey constraintName="my_pk" dropIndex="false" schemaName="my_schema" tableName="my_table"/>
     </changeSet>
 </databaseChangeLog>

@@ -35,7 +35,7 @@ class DropPrimaryKeyConstraintOnlineGenerator() : RewriteBaseSqlGenerator<DropPr
         if (db is OracleDatabase) {
             val original = stmt.original as DropPrimaryKeyStatement
             if (original.dropIndex) {
-                addError("Please split dropping the primary key and dropping index, or disable automatic online DDL rewriting instead")
+                addWarning("It is unverified whether dropping the primary key and dropping index simultaneously works with online DDL. Suggestion: split the operations or disable automatic online DDL rewriting instead")
             }
         }
     }

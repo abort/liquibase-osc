@@ -4,6 +4,12 @@ import liquibase.database.Database
 import kotlin.reflect.KClass
 
 object ArrayUtils {
+    inline fun <reified T, X : T> Array<T>.mapIf(condition: Boolean, f: (element: T) -> X): Array<T> = if (condition) {
+        map(f).toTypedArray()
+    } else {
+        this
+    }
+
     inline fun <reified T, X : T> Array<T>.mapFirstIf(condition: Boolean, f: (element: T) -> X): Array<T> = if (condition) {
         mapFirst(f)
     } else {

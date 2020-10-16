@@ -4,7 +4,6 @@ import liquibase.change.ChangeMetaData
 import liquibase.change.DatabaseChange
 import liquibase.change.core.CreateIndexChange
 import liquibase.database.Database
-import liquibase.database.core.OracleDatabase
 import liquibase.statement.SqlStatement
 import liquibase.statement.core.CreateIndexStatement
 
@@ -15,7 +14,7 @@ import liquibase.statement.core.CreateIndexStatement
         appliesTo = ["index"]
 )
 class CreateIndexOnline : CreateIndexChange(), RewritableChange {
-    override fun generateStatements(db: Database): Array<SqlStatement> = super.generateStatements(db).rewriteFirstStatement(changeSet, db) {
+    override fun generateStatements(db: Database): Array<SqlStatement> = super.generateStatements(db).rewriteStatements(changeSet, db) {
             when (it) {
                 is CreateIndexStatement -> CreateIndexOnlineWrapperStatement(it)
                 else -> it

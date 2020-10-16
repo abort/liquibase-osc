@@ -25,7 +25,7 @@ class SetUnusedColumnGenerator : BaseSqlGenerator<SetUnusedColumnStatement>() {
                     sb.append(',')
                 }
                 sb.deleteCharAt(sb.length - 1)
-                sb.append(") ONLINE;")
+                sb.append(") ONLINE")
                 arrayOf(UnparsedSql(sb.toString()))
             }
             else -> TODO()

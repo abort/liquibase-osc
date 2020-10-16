@@ -4,6 +4,7 @@ import liquibase.changelog.ChangeSet
 import liquibase.database.Database
 import liquibase.database.core.OracleDatabase
 import liquibase.ext.helpers.ArrayUtils.mapFirstIf
+import liquibase.ext.helpers.ArrayUtils.mapIf
 import liquibase.ext.helpers.PropertyUtils
 import liquibase.statement.SqlStatement
 
@@ -19,12 +20,12 @@ interface RewritableChange {
             PropertyUtils.getProperty(changeSet, PropertyRewriteDDL, PropertyRewriteDDLDefaultValue).toBoolean()
 
 
-    fun Array<SqlStatement>.rewriteFirstStatement(
+    fun Array<SqlStatement>.rewriteStatements(
             changeSet: ChangeSet,
             db : Database,
             f: (SqlStatement) -> SqlStatement
     ) : Array<SqlStatement> =
-        mapFirstIf(supportsOnlineRewriteForDatabase(db) && shouldRewrite(changeSet)) {
+        mapIf(supportsOnlineRewriteForDatabase(db) && shouldRewrite(changeSet)) {
             f(it)
         }
 

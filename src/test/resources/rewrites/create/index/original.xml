@@ -5,7 +5,10 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
 
-    <changeSet id="drop-pk-original" author="jorryt">
-        <dropPrimaryKey constraintName="my_pk" dropIndex="false" schemaName="my_schema" tableName="my_table"/>
+    <changeSet id="create-index-original" author="jorryt">
+        <createIndex schemaName="my_schema" tableName="my_table" indexName="my_index">
+            <column name="my_column" />
+            <column name="my_column2" />
+        </createIndex>
     </changeSet>
 </databaseChangeLog>
