@@ -11,9 +11,9 @@ import liquibase.sqlgenerator.SqlGeneratorChain
 
 class DropUniqueConstraintOnlineGenerator : RewriteBaseSqlGenerator<DropUniqueConstraintOnlineWrapperStatement>() {
     override fun generate(
-            stmt: DropUniqueConstraintOnlineWrapperStatement,
-            db: Database,
-            generatorChain: SqlGeneratorChain<DropUniqueConstraintOnlineWrapperStatement>
+        stmt: DropUniqueConstraintOnlineWrapperStatement,
+        db: Database,
+        generatorChain: SqlGeneratorChain<DropUniqueConstraintOnlineWrapperStatement>
     ): Array<Sql> = generatorFactory.generateSql(stmt.original, db).mapFirst(db) { db, e ->
         when (db) {
             is OracleDatabase -> UnparsedSql("${e.toSql()} ONLINE")
@@ -22,9 +22,9 @@ class DropUniqueConstraintOnlineGenerator : RewriteBaseSqlGenerator<DropUniqueCo
     }
 
     override fun validateWrapper(
-            stmt: DropUniqueConstraintOnlineWrapperStatement,
-            db: Database,
-            chain: SqlGeneratorChain<DropUniqueConstraintOnlineWrapperStatement>
+        stmt: DropUniqueConstraintOnlineWrapperStatement,
+        db: Database,
+        chain: SqlGeneratorChain<DropUniqueConstraintOnlineWrapperStatement>
     ): ValidationErrors = ValidationErrors().apply {
         addWarning("DropUniqueConstraint can not be done online for deferrable constraints")
     }

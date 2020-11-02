@@ -10,9 +10,9 @@ import liquibase.sqlgenerator.SqlGeneratorChain
 
 class DropIndexOnlineGenerator : RewriteBaseSqlGenerator<DropIndexOnlineWrapperStatement>() {
     override fun generate(
-            stmt: DropIndexOnlineWrapperStatement,
-            db: Database,
-            generatorChain: SqlGeneratorChain<DropIndexOnlineWrapperStatement>
+        stmt: DropIndexOnlineWrapperStatement,
+        db: Database,
+        generatorChain: SqlGeneratorChain<DropIndexOnlineWrapperStatement>
     ): Array<Sql> = generateOriginal(stmt, db).mapFirst(db) { db, e ->
         when (db) {
             is OracleDatabase -> UnparsedSql("${e.toSql()} ONLINE")

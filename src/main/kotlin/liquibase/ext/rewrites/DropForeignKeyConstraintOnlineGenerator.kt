@@ -11,9 +11,9 @@ import liquibase.sqlgenerator.SqlGeneratorChain
 
 class DropForeignKeyConstraintOnlineGenerator : RewriteBaseSqlGenerator<DropForeignKeyOnlineWrapperStatement>() {
     override fun generate(
-            stmt: DropForeignKeyOnlineWrapperStatement,
-            db: Database,
-            generatorChain: SqlGeneratorChain<DropForeignKeyOnlineWrapperStatement>
+        stmt: DropForeignKeyOnlineWrapperStatement,
+        db: Database,
+        generatorChain: SqlGeneratorChain<DropForeignKeyOnlineWrapperStatement>
     ): Array<Sql> = generateOriginal(stmt, db).mapFirst(db) { db, e ->
         when (db) {
             is OracleDatabase -> UnparsedSql("${e.toSql()} ONLINE")
@@ -22,9 +22,9 @@ class DropForeignKeyConstraintOnlineGenerator : RewriteBaseSqlGenerator<DropFore
     }
 
     override fun validateWrapper(
-            stmt: DropForeignKeyOnlineWrapperStatement,
-            db: Database,
-            chain: SqlGeneratorChain<DropForeignKeyOnlineWrapperStatement>
+        stmt: DropForeignKeyOnlineWrapperStatement,
+        db: Database,
+        chain: SqlGeneratorChain<DropForeignKeyOnlineWrapperStatement>
     ): ValidationErrors = ValidationErrors().apply {
         addWarning("DropForeignKey can not be done online for deferrable constraints")
     }

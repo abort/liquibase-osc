@@ -9,12 +9,18 @@ import liquibase.sql.Sql
 import liquibase.sql.UnparsedSql
 import liquibase.sqlgenerator.SqlGeneratorChain
 
-
 class AddSyncTriggerGenerator : BaseSqlGenerator<AddSyncTriggerStatement>() {
-    // TODO: Assumes that left column is still filled in in code!
-    override fun generate(stmt: AddSyncTriggerStatement, db: Database, generatorChain: SqlGeneratorChain<AddSyncTriggerStatement>): Array<Sql> = run {
+    /**
+     * TODO: Assumes that left column is still filled in in code!
+     */
+    override fun generate(
+        stmt: AddSyncTriggerStatement,
+        db: Database,
+        generatorChain: SqlGeneratorChain<AddSyncTriggerStatement>
+    ): Array<Sql> = run {
+        val tableName = db.escapeTableName(null, null, stmt.tableName)
         val sql = """
-              CREATE OR REPLACE TRIGGER ${stmt.name} BEFORE INSERT OR UPDATE ON ${db.escapeTableName(null, null, stmt.tableName)} FOR EACH ROW
+              CREATE OR REPLACE TRIGGER ${stmt.name} BEFORE INSERT OR UPDATE ON $tableName FOR EACH ROW
               BEGIN
                 if (:new.${stmt.rightColumn} is null and :new.${stmt.leftColumn} is not null) then
                     :new.${stmt.rightColumn} := :new.${stmt.leftColumn};
@@ -27,7 +33,11 @@ class AddSyncTriggerGenerator : BaseSqlGenerator<AddSyncTriggerStatement>() {
         arrayOf(UnparsedSql(sql))
     }
 
-    override fun validate(stmt: AddSyncTriggerStatement, db: Database, generatorChain: SqlGeneratorChain<AddSyncTriggerStatement>): ValidationErrors = ValidationErrors().apply {
+    override fun validate(
+        stmt: AddSyncTriggerStatement,
+        db: Database,
+        generatorChain: SqlGeneratorChain<AddSyncTriggerStatement>
+    ): ValidationErrors = ValidationErrors().apply {
         checkRequiredField("tableName", stmt.tableName)
         checkRequiredField("leftColumn", stmt.leftColumn)
         checkRequiredField("rightColumn", stmt.rightColumn)

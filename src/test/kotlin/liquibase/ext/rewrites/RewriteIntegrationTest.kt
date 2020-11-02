@@ -22,10 +22,10 @@ import org.junit.jupiter.api.Test
 import kotlin.reflect.KClass
 
 abstract class RewriteIntegrationTest(
-        val rewriteChangeLogXml: String,
-        val originalChangeLogXml: String,
-        val changeClass : KClass<out RewritableChange>,
-        val checkOnlineOracleDDLString: (String) -> Unit
+    val rewriteChangeLogXml: String,
+    val originalChangeLogXml: String,
+    val changeClass: KClass<out RewritableChange>,
+    val checkOnlineOracleDDLString: (String) -> Unit
 ) {
     companion object {
         private const val ChangeLogExtensionXml = ".xml"
@@ -48,7 +48,7 @@ abstract class RewriteIntegrationTest(
         checkSingleAndCorrectSubType(log.changeSets)
     }
 
-    private fun checkSingleAndCorrectSubType(changeSets : List<ChangeSet>) {
+    private fun checkSingleAndCorrectSubType(changeSets: List<ChangeSet>) {
         assertEquals(1, changeSets.size)
         assertEquals(1, changeSets[0].changes.size)
         assertThat(changeSets.first().changes.first(), instanceOf(changeClass.java))
@@ -65,9 +65,12 @@ abstract class RewriteIntegrationTest(
         val originalLog = xmlParser.parse(originalChangeLogXml, ChangeLogParameters(getCompatibleOracleSpy()), accessor)
         val rewriteLog = xmlParser.parse(rewriteChangeLogXml, ChangeLogParameters(getCompatibleOracleSpy()), accessor)
         val pairs = originalLog.changeSets.zip(rewriteLog.changeSets)
-        assertTrue(pairs.all { (o, r) ->
-            o.generateCheckSum() == r.generateCheckSum()
-        }, "All rewrited changes should have the same checksum as their original")
+        assertTrue(
+            pairs.all { (o, r) ->
+                o.generateCheckSum() == r.generateCheckSum()
+            },
+            "All rewrited changes should have the same checksum as their original"
+        )
 
         pairs.forEach {
             val checksumsOriginal = it.first.changes.map { c -> c.generateCheckSum() }
@@ -93,15 +96,14 @@ abstract class RewriteIntegrationTest(
 
     @Test
     fun `Change statement for online DDL should generate the same code as usual when Oracle is incompatible`() =
-            checkNoRewrites(getIncompatibleOracleSpy())
-
+        checkNoRewrites(getIncompatibleOracleSpy())
 
     @Test
     fun `Change statement for online DDL should generate the same code as usual when database is not supported`() =
-            checkNoRewrites(MySQLDatabase())
+        checkNoRewrites(MySQLDatabase())
 
     private fun checkNoRewrites(db: Database) = checkNoRewrites(rewriteChangeLogXml, db)
-    protected fun checkNoRewrites(xmlPath : String, db: Database) {
+    protected fun checkNoRewrites(xmlPath: String, db: Database) {
         val log = xmlParser.parse(xmlPath, ChangeLogParameters(db), accessor)
         val change = log.changeSets.first().changes.first()
         val proxiedGen = genSqlString(change, db)
@@ -119,8 +121,8 @@ abstract class RewriteIntegrationTest(
         assertEquals(0, errors.count())
     }
 
-    private fun genSqlString(change : Change, db : Database) : String =
-            generator.generateSql(change, db).joinToString(separator = "\n") { it.toSql() }.trim()
+    private fun genSqlString(change: Change, db: Database): String =
+        generator.generateSql(change, db).joinToString(separator = "\n") { it.toSql() }.trim()
 
     protected fun getCompatibleOracleSpy() = spyk<OracleDatabase>().apply {
         every { databaseMajorVersion } returns 12

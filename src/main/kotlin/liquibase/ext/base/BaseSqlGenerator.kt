@@ -15,7 +15,7 @@ abstract class BaseSqlGenerator<T : SqlStatement> : AbstractSqlGenerator<T>() {
     final override fun generateSql(stmt: T, db: Database, generatorChain: SqlGeneratorChain<T>): Array<Sql> = run {
         val e = validate(stmt, db, generatorChain)
         if (e.hasErrors()) {
-            throw IllegalStateException("Can not generate due to errors: ${e.errorMessages.joinToString(separator = ", ")}")
+            throw IllegalStateException("Can not generate due to errors: ${e.errorMessages.joinToString(", ")}")
         } else {
             generate(stmt, db, generatorChain)
         }

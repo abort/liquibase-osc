@@ -12,9 +12,9 @@ import liquibase.statement.core.DropPrimaryKeyStatement
 
 class DropPrimaryKeyConstraintOnlineGenerator() : RewriteBaseSqlGenerator<DropPrimaryKeyOnlineWrapperStatement>() {
     override fun generate(
-            stmt: DropPrimaryKeyOnlineWrapperStatement,
-            db: Database,
-            generatorChain: SqlGeneratorChain<DropPrimaryKeyOnlineWrapperStatement>
+        stmt: DropPrimaryKeyOnlineWrapperStatement,
+        db: Database,
+        generatorChain: SqlGeneratorChain<DropPrimaryKeyOnlineWrapperStatement>
     ): Array<Sql> = generatorFactory.generateSql(stmt.original, db).mapFirst(db) { db, e ->
         when (db) {
             is OracleDatabase -> UnparsedSql("${e.toSql()} ONLINE")
@@ -23,18 +23,21 @@ class DropPrimaryKeyConstraintOnlineGenerator() : RewriteBaseSqlGenerator<DropPr
     }
 
     override fun validateWrapper(
-            stmt: DropPrimaryKeyOnlineWrapperStatement,
-            db: Database,
-            chain: SqlGeneratorChain<DropPrimaryKeyOnlineWrapperStatement>
+        stmt: DropPrimaryKeyOnlineWrapperStatement,
+        db: Database,
+        chain: SqlGeneratorChain<DropPrimaryKeyOnlineWrapperStatement>
     ): ValidationErrors = ValidationErrors().apply {
         addWarning("DropPrimaryKey can not be done online for deferrable constraints")
 
         if (db is OracleDatabase) {
             val original = stmt.original as DropPrimaryKeyStatement
             if (original.dropIndex) {
-                addWarning("It is unverified whether dropping the primary key and dropping index simultaneously works with online DDL. Suggestion: split the operations or disable automatic online DDL rewriting instead")
+                addWarning(
+                    "It is unverified whether dropping the primary key and dropping index simultaneously works " +
+                        "with online DDL. Suggestion: split the operations or disable automatic online" +
+                        " DDL rewriting instead"
+                )
             }
         }
     }
-
 }

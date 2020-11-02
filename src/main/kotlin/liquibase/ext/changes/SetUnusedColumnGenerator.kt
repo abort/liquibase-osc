@@ -11,9 +11,9 @@ import liquibase.structure.core.Column
 
 class SetUnusedColumnGenerator : BaseSqlGenerator<SetUnusedColumnStatement>() {
     override fun generate(
-            stmt: SetUnusedColumnStatement,
-            db: Database,
-            generatorChain: SqlGeneratorChain<SetUnusedColumnStatement>
+        stmt: SetUnusedColumnStatement,
+        db: Database,
+        generatorChain: SqlGeneratorChain<SetUnusedColumnStatement>
     ): Array<Sql> = stmt.run {
         when (db) {
             is OracleDatabase -> {
@@ -33,10 +33,10 @@ class SetUnusedColumnGenerator : BaseSqlGenerator<SetUnusedColumnStatement>() {
     }
 
     override fun validate(
-            stmt: SetUnusedColumnStatement,
-            db: Database,
-            generatorChain: SqlGeneratorChain<SetUnusedColumnStatement>
-    ): ValidationErrors  = ValidationErrors().apply {
+        stmt: SetUnusedColumnStatement,
+        db: Database,
+        generatorChain: SqlGeneratorChain<SetUnusedColumnStatement>
+    ): ValidationErrors = ValidationErrors().apply {
         if (stmt.schemaName == null) {
             addWarning("Schema field is not provided")
         }

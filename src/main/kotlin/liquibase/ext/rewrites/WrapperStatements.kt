@@ -9,9 +9,15 @@ interface WrapperStatement {
     val original: SqlStatement
 }
 
-data class CreateIndexOnlineWrapperStatement(override val original: SqlStatement) : AbstractSqlStatement(), WrapperStatement
-data class DropColumnOnlineWrapperStatement(override val original: SqlStatement) : AbstractSqlStatement(), WrapperStatement
-data class DropIndexOnlineWrapperStatement(override val original: SqlStatement) : AbstractSqlStatement(), WrapperStatement
-data class DropPrimaryKeyOnlineWrapperStatement(override val original: SqlStatement) : AbstractSqlStatement(), WrapperStatement
-data class DropForeignKeyOnlineWrapperStatement(override val original: SqlStatement) : AbstractSqlStatement(), WrapperStatement
-data class DropUniqueConstraintOnlineWrapperStatement(override val original: SqlStatement) : AbstractSqlStatement(), WrapperStatement
+data class CreateIndexOnlineWrapperStatement(override val original: SqlStatement) :
+    AbstractSqlStatement(), WrapperStatement
+data class DropColumnOnlineWrapperStatement(override val original: SqlStatement) :
+    AbstractSqlStatement(), WrapperStatement
+data class DropIndexOnlineWrapperStatement(override val original: SqlStatement) :
+    AbstractSqlStatement(), WrapperStatement
+data class DropPrimaryKeyOnlineWrapperStatement(override val original: SqlStatement) :
+    AbstractSqlStatement(), WrapperStatement
+data class DropForeignKeyOnlineWrapperStatement(override val original: SqlStatement) :
+    AbstractSqlStatement(), WrapperStatement
+data class DropUniqueConstraintOnlineWrapperStatement(override val original: SqlStatement) :
+    AbstractSqlStatement(), WrapperStatement
