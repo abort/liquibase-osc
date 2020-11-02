@@ -9,14 +9,14 @@ import liquibase.changelog.DatabaseChangeLog
 import liquibase.database.Database
 import liquibase.database.core.MySQLDatabase
 import liquibase.database.core.OracleDatabase
+import liquibase.parser.ChangeLogParser
 import liquibase.parser.ChangeLogParserFactory
 import liquibase.resource.ClassLoaderResourceAccessor
 import liquibase.sqlgenerator.SqlGeneratorFactory
-import org.hamcrest.CoreMatchers.*
+import org.hamcrest.CoreMatchers.instanceOf
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.allOf
-import org.hamcrest.Matchers.contains
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import kotlin.reflect.KClass
@@ -32,10 +32,10 @@ abstract class RewriteIntegrationTest(
     }
 
     protected val accessor = ClassLoaderResourceAccessor()
-    protected val generator = SqlGeneratorFactory.getInstance()
+    protected val generator: SqlGeneratorFactory = SqlGeneratorFactory.getInstance()
 
-    protected val parserFactory = ChangeLogParserFactory.getInstance()
-    protected val xmlParser = parserFactory.getParser(ChangeLogExtensionXml, accessor)
+    private val parserFactory: ChangeLogParserFactory = ChangeLogParserFactory.getInstance()
+    protected val xmlParser: ChangeLogParser = parserFactory.getParser(ChangeLogExtensionXml, accessor)
 
     @BeforeEach
     fun init() {
@@ -100,7 +100,7 @@ abstract class RewriteIntegrationTest(
     fun `Change statement for online DDL should generate the same code as usual when database is not supported`() =
             checkNoRewrites(MySQLDatabase())
 
-    protected fun checkNoRewrites(db: Database) = checkNoRewrites(rewriteChangeLogXml, db)
+    private fun checkNoRewrites(db: Database) = checkNoRewrites(rewriteChangeLogXml, db)
     protected fun checkNoRewrites(xmlPath : String, db: Database) {
         val log = xmlParser.parse(xmlPath, ChangeLogParameters(db), accessor)
         val change = log.changeSets.first().changes.first()

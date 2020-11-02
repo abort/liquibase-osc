@@ -19,7 +19,7 @@ class SetUnusedColumnGenerator : BaseSqlGenerator<SetUnusedColumnStatement>() {
             is OracleDatabase -> {
                 val sb = StringBuilder("ALTER TABLE ")
                 sb.append(db.escapeTableName(catalogName, schemaName, tableName))
-                sb.append(" SET UNUSED COLUMN (")
+                sb.append(" SET UNUSED (")
                 columns.forEach {
                     sb.append(db.escapeObjectName(it, Column::class.java))
                     sb.append(',')
@@ -36,12 +36,12 @@ class SetUnusedColumnGenerator : BaseSqlGenerator<SetUnusedColumnStatement>() {
             stmt: SetUnusedColumnStatement,
             db: Database,
             generatorChain: SqlGeneratorChain<SetUnusedColumnStatement>
-    ): ValidationErrors {
-        val errors = ValidationErrors()
-        if (stmt.schemaName == null) errors.addWarning("Schema field is not provided")
-        errors.checkRequiredField("tableName", stmt.tableName)
-        errors.checkRequiredField("columns", stmt.columns)
-        return errors
+    ): ValidationErrors  = ValidationErrors().apply {
+        if (stmt.schemaName == null) {
+            addWarning("Schema field is not provided")
+        }
+        checkRequiredField("tableName", stmt.tableName)
+        checkRequiredField("columns", stmt.columns)
     }
 
     override fun supports(stmt: SetUnusedColumnStatement, db: Database): Boolean = db is OracleDatabase

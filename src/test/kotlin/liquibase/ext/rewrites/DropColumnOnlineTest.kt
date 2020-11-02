@@ -20,7 +20,7 @@ class DropColumnOnlineTest : RewriteIntegrationTest(
         }
 ) {
     companion object {
-        val RegexPattern = """alter\s+table\s\w+(\.\w+)*\s+set unused column\s*\(\s*\w+(\s*,\s*\w+)*\s*\)\s*online""".toRegex(RegexOption.IGNORE_CASE).toPattern()
+        val RegexPattern = """alter\s+table\s\w+(\.\w+)*\s+set unused\s*\(\s*\w+(\s*,\s*\w+)*\s*\)\s*online""".toRegex(RegexOption.IGNORE_CASE).toPattern()
     }
 
     @Test

@@ -2,7 +2,6 @@ package liquibase.ext.rewrites
 
 import liquibase.statement.AbstractSqlStatement
 import liquibase.statement.SqlStatement
-import liquibase.statement.core.*
 
 // Unfortunately by default we can not have generics here because the ServiceLocator doesn't like those
 // We can also not have an intermediate layer between AbstractSqlStatement and the wrappers
