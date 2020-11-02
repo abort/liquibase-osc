@@ -14,6 +14,8 @@ import liquibase.resource.ClassLoaderResourceAccessor
 import liquibase.sqlgenerator.SqlGeneratorFactory
 import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers.allOf
+import org.hamcrest.Matchers.contains
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -56,6 +58,22 @@ abstract class RewriteIntegrationTest(
     fun `Change should be of the correct subtype when rewrite is disabled`() {
         val log = xmlParser.parse(originalChangeLogXml, ChangeLogParameters(getCompatibleOracleSpy()), accessor)
         checkParsedToCorrectChange(log)
+    }
+
+    @Test
+    fun `Rewrited change should result in the same checksum as the original`() {
+        val originalLog = xmlParser.parse(originalChangeLogXml, ChangeLogParameters(getCompatibleOracleSpy()), accessor)
+        val rewriteLog = xmlParser.parse(rewriteChangeLogXml, ChangeLogParameters(getCompatibleOracleSpy()), accessor)
+        val pairs = originalLog.changeSets.zip(rewriteLog.changeSets)
+        assertTrue(pairs.all { (o, r) ->
+            o.generateCheckSum() == r.generateCheckSum()
+        }, "All rewrited changes should have the same checksum as their original")
+
+        pairs.forEach {
+            val checksumsOriginal = it.first.changes.map { c -> c.generateCheckSum() }
+            val checksumsRewrite = it.second.changes.map { c -> c.generateCheckSum() }
+            assertEquals(checksumsOriginal, checksumsRewrite, "Rewrited checksums should equal their original")
+        }
     }
 
     private fun checkParsedToCorrectChange(log: DatabaseChangeLog) {
