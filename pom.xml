@@ -15,7 +15,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit.jupiter.version>5.6.2</junit.jupiter.version>
         <okio.version>2.4.3</okio.version>
-        <kotlin.version>1.3.72</kotlin.version>
+        <kotlin.version>1.4.30</kotlin.version>
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
         <hamcrest.version>2.2</hamcrest.version>
         <io.mockk.version>1.10.2</io.mockk.version>
@@ -33,6 +33,8 @@
         <dependency-check-maven.cvss-threshold>7</dependency-check-maven.cvss-threshold>
 
         <detekt.config>src/main/resources/detekt.yml</detekt.config>
+        <maven-assembly-plugin.version>3.3.0</maven-assembly-plugin.version>
+        <maven-resources-plugin.version>3.1.0</maven-resources-plugin.version>
     </properties>
 
 
@@ -53,7 +55,7 @@
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-stdlib</artifactId>
+            <artifactId>kotlin-stdlib-jdk8</artifactId>
             <version>${kotlin.version}</version>
         </dependency>
         <dependency>
@@ -88,6 +90,7 @@
         <plugins>
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
+                <version>${maven-resources-plugin.version}</version>
                 <configuration>
                     <encoding>UTF-8</encoding>
                 </configuration>
@@ -170,8 +173,30 @@
                     </execution>
                 </executions>
             </plugin>
-        </plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>${maven-assembly-plugin.version}</version>
 
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+
+            </plugin>
+
+        </plugins>
     </build>
 </project>
 

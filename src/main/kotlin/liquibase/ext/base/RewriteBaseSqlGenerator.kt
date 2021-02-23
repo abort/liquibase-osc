@@ -8,13 +8,14 @@ import liquibase.sqlgenerator.SqlGeneratorChain
 import liquibase.statement.SqlStatement
 
 abstract class RewriteBaseSqlGenerator<T> : BaseSqlGenerator<T>() where T : SqlStatement, T : WrapperStatement {
-    protected fun generateOriginal(stmt: T, db: Database): Array<Sql> = generatorFactory.generateSql(stmt.original, db)
+    protected fun generateOriginal(stmt: T, db: Database): Array<Sql> =
+        getGeneratorFactory().generateSql(stmt.original, db)
     // No support if the original LB has no support for it
-    override fun supports(stmt: T, db: Database): Boolean = generatorFactory.supports(stmt.original, db)
+    override fun supports(stmt: T, db: Database): Boolean = getGeneratorFactory().supports(stmt.original, db)
 
     // Delegate validations to original generators
     override fun validate(stmt: T, db: Database, chain: SqlGeneratorChain<T>): ValidationErrors = run {
-        val originalErrors = generatorFactory.validate(stmt.original, db)
+        val originalErrors = getGeneratorFactory().validate(stmt.original, db)
         originalErrors.addAll(validateWrapper(stmt, db, chain))
         originalErrors
     }
