@@ -2,10 +2,12 @@
 Adds support to Liquibase for online schema changes. These are DDL statements that imply little to no locking, such that DML operations can continue. Currently only Oracle is supported.
 
 ## How to build
-Use `mvn install` to get a jar.
+Use `mvn install` to get a jar installed into your local Maven repository. There will be two binaries installed: one without and one with all direct dependencies.
 
 ## How to use
-Add the jar to your spring-boot liquibase application. Set a property in your `databaseChangeLog`:
+
+# Spring Boot
+Add the jar to your Spring Boot liquibase application. Set a property in your `databaseChangeLog`:
 ```
   - property:
       name: auto-online-ddl
@@ -18,6 +20,10 @@ This property is false by default and therefore does not change any behaviour by
 To find out more about the generated statements (and to see if they actually generate online DDL), set:
 `logging.level.liquibase=DEBUG` in your spring-boot application properties file.
 
+Note: in case your Spring Boot application is not built in Kotlin, you either need to add Kotlin dependencies to the classpath or simply rely on the fat jar instead.
+
+# Command Line
+Use the `Liquibase` shell script as a starting point. Make sure to add this extension including its dependencies (i.e. the fat jar) to the Java classpath (`-cp` parameter). This is necessary because e.g. Kotlin libraries are necessary for this plugin, whilst Liquibase itself has been developed in Java.
 
 ## Supported existing constructs 
 This automatically takes care of the regular DDL statements and replaces those with their onlien equivalent. Currently supported are:
