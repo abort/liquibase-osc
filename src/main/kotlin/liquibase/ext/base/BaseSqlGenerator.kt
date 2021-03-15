@@ -9,7 +9,7 @@ import liquibase.statement.SqlStatement
 
 abstract class BaseSqlGenerator<T : SqlStatement> : AbstractSqlGenerator<T>() {
 
-    protected fun getGeneratorFactory() = SqlGeneratorFactory.getInstance()
+    protected fun getGeneratorFactory(): SqlGeneratorFactory = SqlGeneratorFactory.getInstance()
     final override fun generateSql(stmt: T, db: Database, generatorChain: SqlGeneratorChain<T>): Array<Sql> = run {
         val e = validate(stmt, db, generatorChain)
         if (e.hasErrors()) {
