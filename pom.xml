@@ -18,7 +18,7 @@
         <kotlin.version>1.4.30</kotlin.version>
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
         <hamcrest.version>2.2</hamcrest.version>
-        <io.mockk.version>1.10.2</io.mockk.version>
+        <io.mockk.version>1.10.6</io.mockk.version>
         <snakeyaml.version>1.27</snakeyaml.version>
         <liquibase-core.version>3.10.2</liquibase-core.version>
 
@@ -35,6 +35,7 @@
         <detekt.config>src/main/resources/detekt.yml</detekt.config>
         <maven-assembly-plugin.version>3.3.0</maven-assembly-plugin.version>
         <maven-resources-plugin.version>3.1.0</maven-resources-plugin.version>
+        <kotest.version>4.4.3</kotest.version>
     </properties>
 
 
@@ -79,6 +80,24 @@
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
             <version>${snakeyaml.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.kotest</groupId>
+            <artifactId>kotest-runner-junit5-jvm</artifactId>
+            <version>${kotest.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.kotest</groupId>
+            <artifactId>kotest-assertions-core-jvm</artifactId>
+            <version>${kotest.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.kotest</groupId>
+            <artifactId>kotest-property-jvm</artifactId>
+            <version>${kotest.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
