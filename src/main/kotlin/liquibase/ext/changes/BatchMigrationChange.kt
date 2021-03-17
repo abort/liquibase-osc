@@ -10,11 +10,12 @@ import liquibase.exception.CustomChangeException
 import liquibase.exception.ValidationErrors
 import liquibase.resource.ResourceAccessor
 import liquibase.structure.core.Column
+import java.math.BigInteger
 import java.sql.*
 
 /**
  * Class to do migrations in small batches
- * Should be followed by a <update> where update is idempotent
+ * Should be followed by a <update> where update is idempotent with this one
  * For databases that are not implemented this class serves as a 'no-op'
  */
 class BatchMigrationChange : CustomTaskChange, CustomTaskRollback {
@@ -22,7 +23,8 @@ class BatchMigrationChange : CustomTaskChange, CustomTaskRollback {
     var fromColumns: String? = null
     var toColumns: String? = null
     var primaryKeyColumns: String? = null
-    var chunkSize: Int? = 250
+    var chunkSize: Long? = 250L
+    var sleepTime: Long? = 0L
 
     private var resourceAccessor: ResourceAccessor? = null
 
@@ -80,34 +82,44 @@ class BatchMigrationChange : CustomTaskChange, CustomTaskRollback {
             return errors
         }
 
-        if (chunkSize == null || chunkSize!! <= 0) {
-            errors.addError("chunkSize should be provided as a positive integer")
+        if (chunkSize == null || chunkSize!! <= 0L) {
+            errors.addError("chunkSize should be provided as a positive long")
+        }
+
+        if (primaryKeyColumns.isNullOrEmpty()) {
+            errors.addError("Primary keys are not defined")
         }
 
         if (fromArray?.toSet()?.size != fromArray?.size) {
             errors.addError("Duplicate elements in fromColumns")
         }
-        if (toArray?.toSet()?.size != toArray?.size) {
+
+        val toSet = toArray!!.toSet()
+        if (toSet.size != toArray!!.size) {
             errors.addError("Duplicate elements in toColumns")
         }
 
-        if (fromArray?.size != toArray?.size) {
+        if (fromArray!!.size != toArray!!.size) {
             errors.addError("fromColumns and toColumns require a 1:1 relationship (unequal column count)")
-        }
-        else {
-            val toSet = toArray!!.toSet()
-            fromArray?.forEachIndexed { i: Int, col: Column ->
+        } else {
+            fromArray!!.forEachIndexed { i: Int, col: Column ->
                 if (col == toArray!![i]) {
                     errors.addError("Column $col should not be migrated to itself")
-                }
-                else if (col in toSet) {
+                } else if (col in toSet) {
                     errors.addError("Migration of $col crosses, which is not possible")
                 }
             }
         }
 
-        if (primaryKeyColumns.isNullOrEmpty()) {
-            errors.addError("Primary keys are not defined")
+        pkArray?.filter { it in toSet }?.forEach { pk ->
+            errors.addError("Can not migrate to current primary key: $pk")
+        }
+
+        if (sleepTime == null) {
+            sleepTime = 0L
+        }
+        else if (sleepTime!! < 0L) {
+            errors.addError("Sleep time can not be negative")
         }
 
         return errors
@@ -143,16 +155,26 @@ class BatchMigrationChange : CustomTaskChange, CustomTaskRollback {
                 throw CustomChangeException("Database has no immutable rowIds")
             }
 
-            do {
-                val n = executeMigrationChunk(conn)
-                Thread.sleep(10000L)
-            } while (n > 0)
+            var running = true
+            var offset = BigInteger.ZERO
+            while (running) {
+                val n = executeMigrationChunk(conn, offset)
+                if (n <= 0L) {
+                    running = false
+                }
+                else {
+                    offset = offset.add(chunkSize!!.toBigInteger())
+                    if (sleepTime != null && sleepTime!! > 0L) {
+                        Thread.sleep(sleepTime!!)
+                    }
+                }
+            }
         } catch (e: CustomChangeException) {
             throw e
         }
     }
 
-    private fun executeMigrationChunk(conn: JdbcConnection): Int {
+    private fun executeMigrationChunk(conn: JdbcConnection, offset : BigInteger): Long {
         try {
             // Fetch only the rows where not all values are synced yet
             val query = """
@@ -161,20 +183,17 @@ class BatchMigrationChange : CustomTaskChange, CustomTaskRollback {
                 WHERE rowId IN
                 (SELECT rowId
                       FROM $table
-                      WHERE $whereClauseString
+                      ORDER BY $orderClauseString
+                      OFFSET $offset ROWS
                       FETCH NEXT $chunkSize ROWS ONLY                  
                 )
-            """.trimIndent() // ORDER BY $orderClauseString
-            println("Executing migration chunk:")
-            println(query)
-            if (1 > 0) {
-                // TODO: remove this :), temporary
-                return 1
-            }
+            """.trimIndent()
 
             val stmt = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)
-
-            return stmt.executeUpdate()
+            val affectedRows = stmt.executeLargeUpdate()
+            // serves as no-op when auto-commit = true
+            conn.commit()
+            return affectedRows
         } catch (e: SQLException) {
             throw CustomChangeException("Could not update $table in batch", e)
         }
@@ -190,21 +209,21 @@ class BatchMigrationChange : CustomTaskChange, CustomTaskRollback {
         }
     }
 
-    private fun queryMaxRowId(conn: JdbcConnection): RowId {
-        val query = "SELECT max(rowId) as rws from :table FETCH FIRST 1 ROWS ONLY"
-        try {
-            val stmt = conn.prepareStatement(query)
-            stmt.setString(1, table)
-
-            val rs = stmt.executeQuery()
-            rs.next()
-            val rows = rs.getRowId("rws")
-            print("Retrieved row count for $table: $rows")
-            return rows
-        } catch (e: SQLException) {
-            throw CustomChangeException("Can not count amount of rows in table $table", e)
-        }
-    }
+//    private fun queryMaxRowId(conn: JdbcConnection): RowId {
+//        val query = "SELECT max(rowId) as rws from :table FETCH FIRST 1 ROWS ONLY"
+//        try {
+//            val stmt = conn.prepareStatement(query)
+//            stmt.setString(1, table)
+//
+//            val rs = stmt.executeQuery()
+//            rs.next()
+//            val rows = rs.getRowId("rws")
+//            print("Retrieved row count for $table: $rows")
+//            return rows
+//        } catch (e: SQLException) {
+//            throw CustomChangeException("Can not count amount of rows in table $table", e)
+//        }
+//    }
 
     // We do not need rollbacks for this as it is not semantics, even though we 'could' by an inverse operation
     override fun rollback(db: Database) {
@@ -212,6 +231,6 @@ class BatchMigrationChange : CustomTaskChange, CustomTaskRollback {
     }
 
     override fun toString(): String {
-        return "BatchMigrationChange(table=$table, fromColumns=$fromColumns, toColumns=$toColumns, primaryKeyColumns=$primaryKeyColumns, chunkSize=$chunkSize, resourceAccessor=$resourceAccessor)"
+        return "BatchMigrationChange(table=$table, fromColumns=$fromColumns, toColumns=$toColumns, primaryKeyColumns=$primaryKeyColumns, chunkSize=$chunkSize, sleepTime=$sleepTime)"
     }
 }
