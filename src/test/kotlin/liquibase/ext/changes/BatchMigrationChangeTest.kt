@@ -4,11 +4,18 @@ import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.property.checkAll
 import io.kotest.property.exhaustive.exhaustive
 import io.kotest.property.forAll
-import io.mockk.*
-import liquibase.database.core.*
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.spyk
+import io.mockk.verify
+import liquibase.database.core.MSSQLDatabase
+import liquibase.database.core.MariaDBDatabase
+import liquibase.database.core.MySQLDatabase
+import liquibase.database.core.OracleDatabase
+import liquibase.database.core.PostgresDatabase
 import liquibase.database.jvm.JdbcConnection
 import liquibase.exception.CustomChangeException
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.assertDoesNotThrow
 import java.sql.DatabaseMetaData
 import java.sql.PreparedStatement
@@ -163,10 +170,8 @@ class BatchMigrationChangeTest : ShouldSpec({
                 every { conn.commit() } returns Unit
 
                 migration.execute(db)
-
-                verify(exactly = 4) { conn.prepareStatement(any(), Statement.RETURN_GENERATED_KEYS) }
                 // slot.forEach { println(it) }
-                // TODO: disect here and check if it is safe
+                verify(exactly = 4) { conn.prepareStatement(any(), Statement.RETURN_GENERATED_KEYS) }
             }
         }
     }

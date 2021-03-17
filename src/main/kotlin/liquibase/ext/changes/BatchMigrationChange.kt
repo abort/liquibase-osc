@@ -11,7 +11,10 @@ import liquibase.exception.ValidationErrors
 import liquibase.resource.ResourceAccessor
 import liquibase.structure.core.Column
 import java.math.BigInteger
-import java.sql.*
+import java.sql.DatabaseMetaData
+import java.sql.RowIdLifetime
+import java.sql.SQLException
+import java.sql.Statement
 
 /**
  * Class to do migrations in small batches
@@ -19,14 +22,19 @@ import java.sql.*
  * For databases that are not implemented this class serves as a 'no-op'
  */
 class BatchMigrationChange : CustomTaskChange, CustomTaskRollback {
+    companion object {
+        const val DefaultChunkSize = 250L
+        const val DefaultSleepTime = 0L
+    }
+
     var catalogName: String? = null
     var schemaName: String? = null
     var tableName: String? = null
     var fromColumns: String? = null
     var toColumns: String? = null
     var primaryKeyColumns: String? = null // consider calling index columns
-    var chunkSize: Long? = 250L
-    var sleepTime: Long? = 0L
+    var chunkSize: Long? = DefaultChunkSize
+    var sleepTime: Long? = DefaultSleepTime
 
     private var resourceAccessor: ResourceAccessor? = null
 
@@ -69,8 +77,9 @@ class BatchMigrationChange : CustomTaskChange, CustomTaskRollback {
         Scope.getCurrentScope().getLog(javaClass).info("Initialized BatchMigrationChange")
     }
 
-    // TODO: consider validating for bijection
+    @Suppress("ComplexMethod", "ReturnCount", "ForbiddenComment")
     override fun validate(db: Database): ValidationErrors {
+        // TODO: consider validating for bijection
         val errors = ValidationErrors()
         if (db !is OracleDatabase) {
             return errors
@@ -148,6 +157,7 @@ class BatchMigrationChange : CustomTaskChange, CustomTaskRollback {
         }
     }
 
+    @Suppress("ThrowsCount", "NestedBlockDepth")
     private fun startMigration(scope: Scope, db: OracleDatabase) {
         if (db.connection == null || db.connection.isClosed) {
             scope.getLog(javaClass).severe("Not connected to Oracle database")
@@ -237,6 +247,8 @@ class BatchMigrationChange : CustomTaskChange, CustomTaskRollback {
     }
 
     override fun toString(): String {
-        return "BatchMigrationChange(table=$tableName, fromColumns=$fromColumns, toColumns=$toColumns, primaryKeyColumns=$primaryKeyColumns, chunkSize=$chunkSize, sleepTime=$sleepTime)"
+        return "BatchMigrationChange(table=$tableName, fromColumns=$fromColumns, " +
+            "toColumns=$toColumns, primaryKeyColumns=$primaryKeyColumns, " +
+            "chunkSize=$chunkSize, sleepTime=$sleepTime)"
     }
 }
