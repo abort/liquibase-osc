@@ -61,7 +61,7 @@ abstract class RewriteIntegrationTest(
     }
 
     @Test
-    fun `Rewrited change should result in the same checksum as the original`() {
+    fun `Rewritten change should result in the same checksum as the original`() {
         val originalLog = xmlParser.parse(originalChangeLogXml, ChangeLogParameters(getCompatibleOracleSpy()), accessor)
         val rewriteLog = xmlParser.parse(rewriteChangeLogXml, ChangeLogParameters(getCompatibleOracleSpy()), accessor)
         val pairs = originalLog.changeSets.zip(rewriteLog.changeSets)
@@ -69,13 +69,13 @@ abstract class RewriteIntegrationTest(
             pairs.all { (o, r) ->
                 o.generateCheckSum() == r.generateCheckSum()
             },
-            "All rewrited changes should have the same checksum as their original"
+            "All rewritten changes should have the same checksum as their original"
         )
 
         pairs.forEach {
             val checksumsOriginal = it.first.changes.map { c -> c.generateCheckSum() }
             val checksumsRewrite = it.second.changes.map { c -> c.generateCheckSum() }
-            assertEquals(checksumsOriginal, checksumsRewrite, "Rewrited checksums should equal their original")
+            assertEquals(checksumsOriginal, checksumsRewrite, "Rewritten checksums should equal their original")
         }
     }
 

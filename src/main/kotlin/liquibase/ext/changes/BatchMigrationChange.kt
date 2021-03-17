@@ -22,7 +22,7 @@ class BatchMigrationChange : CustomTaskChange, CustomTaskRollback {
     var table: String? = null
     var fromColumns: String? = null
     var toColumns: String? = null
-    var primaryKeyColumns: String? = null
+    var primaryKeyColumns: String? = null // consider calling index columns
     var chunkSize: Long? = 250L
     var sleepTime: Long? = 0L
 
@@ -63,6 +63,7 @@ class BatchMigrationChange : CustomTaskChange, CustomTaskRollback {
         Scope.getCurrentScope().getLog(javaClass).info("Initialized BatchMigrationChange")
     }
 
+    // TODO: consider validating for bijection
     override fun validate(db: Database): ValidationErrors {
         val errors = ValidationErrors()
         if (db !is OracleDatabase) {
@@ -193,6 +194,7 @@ class BatchMigrationChange : CustomTaskChange, CustomTaskRollback {
             val affectedRows = stmt.executeLargeUpdate()
             // serves as no-op when auto-commit = true
             conn.commit()
+
             return affectedRows
         } catch (e: SQLException) {
             throw CustomChangeException("Could not update $table in batch", e)
