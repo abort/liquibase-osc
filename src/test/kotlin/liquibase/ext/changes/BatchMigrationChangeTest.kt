@@ -1,14 +1,10 @@
 package liquibase.ext.changes
 
 import io.kotest.core.spec.style.ShouldSpec
-import io.kotest.matchers.ints.exactly
 import io.kotest.property.checkAll
 import io.kotest.property.exhaustive.exhaustive
 import io.kotest.property.forAll
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.spyk
-import io.mockk.verify
+import io.mockk.*
 import liquibase.database.core.*
 import liquibase.database.jvm.JdbcConnection
 import liquibase.exception.CustomChangeException
@@ -18,7 +14,6 @@ import java.sql.DatabaseMetaData
 import java.sql.PreparedStatement
 import java.sql.RowIdLifetime
 import java.sql.Statement
-import java.util.*
 import liquibase.ext.generators.BatchMigrationGenerator as gen
 
 class BatchMigrationChangeTest : ShouldSpec({
@@ -145,5 +140,43 @@ class BatchMigrationChangeTest : ShouldSpec({
                 verify(exactly = requiredUpdates) { conn.commit() }
             }
         }
+        should("only construct expected update statements") {
+            checkAll(gen.validMigrationGenerator) { migration ->
+                val conn = mockk<JdbcConnection>()
+                val md = mockk<DatabaseMetaData>()
+                val db = mockk<OracleDatabase>()
+                val stmt = mockk<PreparedStatement>()
+
+                val n = migration.chunkSize!!
+
+                val slot = mutableListOf<String>()
+                // Should always be 4 updates
+                val tail = kotlin.math.max(n / 2L, 1L)
+                val totalRows = 3 * n + tail
+
+                every { db.connection } returns conn
+                every { conn.isClosed } returns false
+                every { md.rowIdLifetime } returns RowIdLifetime.ROWID_VALID_FOREVER
+                every { conn.metaData } returns md
+                every { stmt.executeLargeUpdate() } returnsMany listOf(n, n, n, tail)
+                every { conn.prepareStatement(capture(slot), Statement.RETURN_GENERATED_KEYS) } returns stmt
+                every { conn.commit() } returns Unit
+
+                migration.execute(db)
+
+                verify(exactly = 4) { conn.prepareStatement(any(), Statement.RETURN_GENERATED_KEYS) }
+                // slot.forEach { println(it) }
+                // TODO: disect here and check if it is safe
+            }
+        }
     }
+
+//    private fun disectStatement(sql : String, migration : BatchMigrationChange) : Unit {
+//        var s = sql.trim()
+//        assertTrue(s.startsWith("update ", ignoreCase = true))
+//
+//        s.drop(len)
+//
+//        assertEquals("`${migration.table}`", )
+//    }
 })

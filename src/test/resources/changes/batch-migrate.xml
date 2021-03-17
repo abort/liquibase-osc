@@ -7,7 +7,7 @@
 
     <changeSet id="migrate" author="jorryt">
         <customChange class="liquibase.ext.changes.BatchMigrationChange">
-            <param name="table" value="cst" />
+            <param name="tableName" value="cst" />
             <param name="fromColumns" value="c_phone" />
             <param name="toColumns" value="c_phone_new" />
             <param name="chunkSize" value="1000" />

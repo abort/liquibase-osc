@@ -2,8 +2,6 @@ package liquibase.ext.changes
 
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.spyk
-import io.mockk.verify
 import liquibase.change.custom.CustomChangeWrapper
 import liquibase.changelog.ChangeLogParameters
 import liquibase.database.core.OracleDatabase
@@ -17,7 +15,6 @@ import org.junit.jupiter.api.Test
 import java.sql.DatabaseMetaData
 import java.sql.PreparedStatement
 import java.sql.RowIdLifetime
-import java.sql.Statement
 
 class BatchMigrationIntegrationTest {
     companion object {
@@ -37,7 +34,7 @@ class BatchMigrationIntegrationTest {
         val changes = xml.changeSets.first().changes
         val customChangeWrapper = changes[0] as CustomChangeWrapper
 
-        assertEquals("cst", customChangeWrapper.getParamValue("table"))
+        assertEquals("cst", customChangeWrapper.getParamValue("tableName"))
         assertEquals("c_phone", customChangeWrapper.getParamValue("fromColumns"))
         assertEquals("c_phone_new", customChangeWrapper.getParamValue("toColumns"))
         assertEquals("1000", customChangeWrapper.getParamValue("chunkSize"))
@@ -59,7 +56,7 @@ class BatchMigrationIntegrationTest {
         // should make sure that all is set
         customChangeWrapper.generateStatements(db)
 
-        assertEquals("cst", m.table)
+        assertEquals("cst", m.tableName)
         assertEquals(1000L, m.chunkSize)
         assertEquals("c_phone", m.fromColumns)
         assertEquals("c_phone_new", m.toColumns)

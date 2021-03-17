@@ -31,7 +31,7 @@ object BatchMigrationGenerator {
         val colCount = Arb.int(1, 5).next(rs)
         val colGen = fixedColumnListNoDupsGenerator(colCount, colCount)
 
-        change.table = identifierGen(1).next(rs)
+        change.tableName = identifierGen(1).next(rs)
         change.chunkSize = Arb.long(1L, 10000L).next(rs)
         val from = colGen.next(rs)
         val fromSet = from.toSet()
@@ -48,7 +48,7 @@ object BatchMigrationGenerator {
         change
     }
 
-    val validMigrationWithSleepsGenerator = arbitrary { rs : RandomSource ->
+    val validMigrationWithSleepsGenerator = arbitrary { rs: RandomSource ->
         val mig = validMigrationGenerator.next(rs)
         mig.sleepTime = Arb.long(0L, 10000L).orNull().next(rs)
         mig
@@ -56,7 +56,7 @@ object BatchMigrationGenerator {
 
     val sampleMigrationGenerator = arbitrary { rs: RandomSource ->
         val change = BatchMigrationChange()
-        change.table = identifierGen(1).orNull().next(rs)
+        change.tableName = identifierGen(1).orNull().next(rs)
         change.chunkSize = Arb.long(-100L, 10000L).orNull().next(rs)
         val upperBound = Arb.int(0, 5).next(rs)
         val minBound = Arb.int(0, 5).filter { it <= upperBound }.next(rs)

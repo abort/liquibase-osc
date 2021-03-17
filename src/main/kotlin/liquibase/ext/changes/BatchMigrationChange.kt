@@ -19,7 +19,9 @@ import java.sql.*
  * For databases that are not implemented this class serves as a 'no-op'
  */
 class BatchMigrationChange : CustomTaskChange, CustomTaskRollback {
-    var table: String? = null
+    var catalogName: String? = null
+    var schemaName: String? = null
+    var tableName: String? = null
     var fromColumns: String? = null
     var toColumns: String? = null
     var primaryKeyColumns: String? = null // consider calling index columns
@@ -52,12 +54,16 @@ class BatchMigrationChange : CustomTaskChange, CustomTaskRollback {
         pkArray!!.joinToString(separator = ",") { x -> x.name }
     }
 
+    private val fullName: String by lazy {
+        OracleDatabase().escapeTableName(catalogName, schemaName, tableName)
+    }
+
     override fun setFileOpener(ra: ResourceAccessor?) {
         resourceAccessor = ra
     }
 
     override fun getConfirmationMessage(): String =
-        "Successfully migrated $fromColumns to $toColumns in $table"
+        "Successfully migrated $fromColumns to $toColumns in $tableName"
 
     override fun setUp() {
         Scope.getCurrentScope().getLog(javaClass).info("Initialized BatchMigrationChange")
@@ -70,7 +76,7 @@ class BatchMigrationChange : CustomTaskChange, CustomTaskRollback {
             return errors
         }
 
-        if (table.isNullOrEmpty()) {
+        if (tableName.isNullOrEmpty()) {
             errors.addError("table is not provided")
         }
 
@@ -118,8 +124,7 @@ class BatchMigrationChange : CustomTaskChange, CustomTaskRollback {
 
         if (sleepTime == null) {
             sleepTime = 0L
-        }
-        else if (sleepTime!! < 0L) {
+        } else if (sleepTime!! < 0L) {
             errors.addError("Sleep time can not be negative")
         }
 
@@ -160,10 +165,9 @@ class BatchMigrationChange : CustomTaskChange, CustomTaskRollback {
             var offset = BigInteger.ZERO
             while (running) {
                 val n = executeMigrationChunk(conn, offset)
-                if (n <= 0L) {
+                if (n < chunkSize!!) {
                     running = false
-                }
-                else {
+                } else {
                     offset = offset.add(chunkSize!!.toBigInteger())
                     if (sleepTime != null && sleepTime!! > 0L) {
                         Thread.sleep(sleepTime!!)
@@ -175,18 +179,18 @@ class BatchMigrationChange : CustomTaskChange, CustomTaskRollback {
         }
     }
 
-    private fun executeMigrationChunk(conn: JdbcConnection, offset : BigInteger): Long {
+    private fun executeMigrationChunk(conn: JdbcConnection, offset: BigInteger): Long {
         try {
             // Fetch only the rows where not all values are synced yet
             val query = """
-                UPDATE $table
+                UPDATE $fullName
                 SET $updateColumnsString
                 WHERE rowId IN
                 (SELECT rowId
-                      FROM $table
+                      FROM $fullName
                       ORDER BY $orderClauseString
                       OFFSET $offset ROWS
-                      FETCH NEXT $chunkSize ROWS ONLY                  
+                      FETCH NEXT $chunkSize ROWS ONLY
                 )
             """.trimIndent()
 
@@ -197,7 +201,7 @@ class BatchMigrationChange : CustomTaskChange, CustomTaskRollback {
 
             return affectedRows
         } catch (e: SQLException) {
-            throw CustomChangeException("Could not update $table in batch", e)
+            throw CustomChangeException("Could not update $tableName in batch", e)
         }
     }
 
@@ -233,6 +237,6 @@ class BatchMigrationChange : CustomTaskChange, CustomTaskRollback {
     }
 
     override fun toString(): String {
-        return "BatchMigrationChange(table=$table, fromColumns=$fromColumns, toColumns=$toColumns, primaryKeyColumns=$primaryKeyColumns, chunkSize=$chunkSize, sleepTime=$sleepTime)"
+        return "BatchMigrationChange(table=$tableName, fromColumns=$fromColumns, toColumns=$toColumns, primaryKeyColumns=$primaryKeyColumns, chunkSize=$chunkSize, sleepTime=$sleepTime)"
     }
 }
