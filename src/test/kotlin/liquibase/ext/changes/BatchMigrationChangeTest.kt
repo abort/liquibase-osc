@@ -20,9 +20,11 @@ import org.junit.jupiter.api.assertDoesNotThrow
 import java.sql.DatabaseMetaData
 import java.sql.PreparedStatement
 import java.sql.RowIdLifetime
+import java.sql.SQLException
 import java.sql.Statement
 import liquibase.ext.generators.BatchMigrationGenerator as gen
 
+@Suppress("EmptyCatchBlock")
 class BatchMigrationChangeTest : ShouldSpec({
     val otherDatabases = listOf(PostgresDatabase(), MySQLDatabase(), MSSQLDatabase(), MariaDBDatabase()).exhaustive()
 
@@ -96,6 +98,54 @@ class BatchMigrationChangeTest : ShouldSpec({
                 }
             }
         }
+        should("close statements as many times as commits when execution goes fine") {
+            checkAll(gen.validMigrationGenerator) { c ->
+                val conn = mockk<JdbcConnection>(relaxed = true)
+                val md = mockk<DatabaseMetaData>()
+                val db = mockk<OracleDatabase>()
+                val stmt = mockk<PreparedStatement>()
+                val expectedUpdates = listOf(c.chunkSize!!, c.chunkSize!!, 0L)
+
+                every { db.connection } returns conn
+                every { conn.isClosed } returns false
+                every { md.rowIdLifetime } returns RowIdLifetime.ROWID_VALID_FOREVER
+                every { conn.metaData } returns md
+                every { stmt.close() } returns Unit
+                every { stmt.executeLargeUpdate() } returnsMany expectedUpdates
+                every { conn.prepareStatement(any(), Statement.RETURN_GENERATED_KEYS) } returns stmt
+
+                c.execute(db)
+
+                verify(exactly = expectedUpdates.size) { conn.commit() }
+                verify(exactly = expectedUpdates.size) { stmt.close() }
+            }
+        }
+        should("close statements as many times as they are prepared when exceptions may occur") {
+            checkAll(gen.validMigrationGenerator) { c ->
+                val conn = mockk<JdbcConnection>(relaxed = true)
+                val md = mockk<DatabaseMetaData>()
+                val db = mockk<OracleDatabase>()
+                val stmt = mockk<PreparedStatement>()
+                val expectedUpdates = listOf(c.chunkSize!!, c.chunkSize!!, 0L)
+
+                every { db.connection } returns conn
+                every { conn.isClosed } returns false
+                every { md.rowIdLifetime } returns RowIdLifetime.ROWID_VALID_FOREVER
+                every { conn.metaData } returns md
+                every { stmt.close() } returns Unit
+                every { stmt.executeLargeUpdate() } returnsMany expectedUpdates
+                every { conn.commit() } returns Unit andThen Unit andThenThrows SQLException("Anything")
+                every { conn.prepareStatement(any(), Statement.RETURN_GENERATED_KEYS) } returns stmt
+
+                try {
+                    c.execute(db)
+                } catch (e: CustomChangeException) {
+                }
+
+                verify(exactly = expectedUpdates.size) { conn.commit() }
+                verify(exactly = expectedUpdates.size) { stmt.close() }
+            }
+        }
         should("stop when the connection is not set") {
             val db = mockk<OracleDatabase>()
             every { db.connection } returns null
@@ -139,6 +189,7 @@ class BatchMigrationChangeTest : ShouldSpec({
                 every { stmt.executeLargeUpdate() } returnsMany updateResults
                 every { conn.prepareStatement(any(), Statement.RETURN_GENERATED_KEYS) } returns stmt
                 every { conn.commit() } returns Unit
+                every { stmt.close() } returns Unit
 
                 migration.execute(db)
 
@@ -157,7 +208,7 @@ class BatchMigrationChangeTest : ShouldSpec({
                 val n = migration.chunkSize!!
 
                 val slot = mutableListOf<String>()
-                // Should always be 4 updates
+                // Should always be 5 updates
                 val tail = kotlin.math.max(n / 2L, 1L)
                 val totalRows = 3 * n + tail
 
@@ -165,13 +216,13 @@ class BatchMigrationChangeTest : ShouldSpec({
                 every { conn.isClosed } returns false
                 every { md.rowIdLifetime } returns RowIdLifetime.ROWID_VALID_FOREVER
                 every { conn.metaData } returns md
-                every { stmt.executeLargeUpdate() } returnsMany listOf(n, n, n, tail)
+                every { stmt.executeLargeUpdate() } returnsMany listOf(n, n, n, tail, 0L)
                 every { conn.prepareStatement(capture(slot), Statement.RETURN_GENERATED_KEYS) } returns stmt
                 every { conn.commit() } returns Unit
+                every { stmt.close() } returns Unit
 
                 migration.execute(db)
-                // slot.forEach { println(it) }
-                verify(exactly = 4) { conn.prepareStatement(any(), Statement.RETURN_GENERATED_KEYS) }
+                verify(exactly = 5) { conn.prepareStatement(any(), Statement.RETURN_GENERATED_KEYS) }
             }
         }
     }

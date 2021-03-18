@@ -45,14 +45,13 @@ class BatchMigrationIntegrationTest {
 
         val conn = mockk<JdbcConnection>(relaxed = true)
         val db = mockk<OracleDatabase>()
-        val stmt = mockk<PreparedStatement>()
+        val stmt = mockk<PreparedStatement>(relaxed = true)
         val md = mockk<DatabaseMetaData>()
         every { md.rowIdLifetime } returns RowIdLifetime.ROWID_VALID_FOREVER
         every { conn.metaData } returns md
         every { stmt.executeLargeUpdate() } returns 0L // implies done
         every { conn.prepareStatement(any(), any<Int>()) } returns stmt
         every { db.connection } returns conn
-
         // should make sure that all is set
         customChangeWrapper.generateStatements(db)
 

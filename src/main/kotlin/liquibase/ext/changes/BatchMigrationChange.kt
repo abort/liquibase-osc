@@ -12,6 +12,7 @@ import liquibase.resource.ResourceAccessor
 import liquibase.structure.core.Column
 import java.math.BigInteger
 import java.sql.DatabaseMetaData
+import java.sql.PreparedStatement
 import java.sql.RowIdLifetime
 import java.sql.SQLException
 import java.sql.Statement
@@ -47,11 +48,7 @@ class BatchMigrationChange : CustomTaskChange, CustomTaskRollback {
     }
 
     private val updateColumnsString: String by lazy {
-        fromArray!!.zip(toArray!!).joinToString(separator = ", ") { (f, t) -> "${f.name} = ${t.name}" }
-    }
-
-    private val whereClauseString: String by lazy {
-        fromArray!!.zip(toArray!!).joinToString(separator = " OR ") { (f, t) -> "${f.name} != ${t.name}" }
+        toArray!!.zip(fromArray!!).joinToString(separator = ", ") { (f, t) -> "${f.name} = ${t.name}" }
     }
 
     private val pkArray: Array<Column>? by lazy {
@@ -64,6 +61,12 @@ class BatchMigrationChange : CustomTaskChange, CustomTaskRollback {
 
     private val fullName: String by lazy {
         OracleDatabase().escapeTableName(catalogName, schemaName, tableName)
+    }
+
+    private val whereClauseString: String by lazy {
+        toArray!!.zip(fromArray!!).joinToString(separator = ", ") { (f, t) ->
+            "${f.name} IS NULL and ${t.name} IS NOT NULL"
+        }
     }
 
     override fun setFileOpener(ra: ResourceAccessor?) {
@@ -174,8 +177,8 @@ class BatchMigrationChange : CustomTaskChange, CustomTaskRollback {
             var running = true
             var offset = BigInteger.ZERO
             while (running) {
-                val n = executeMigrationChunk(conn, offset)
-                if (n < chunkSize!!) {
+                val n = executeMigrationChunk(scope, conn, offset)
+                if (n == 0L) {
                     running = false
                 } else {
                     offset = offset.add(chunkSize!!.toBigInteger())
@@ -189,7 +192,8 @@ class BatchMigrationChange : CustomTaskChange, CustomTaskRollback {
         }
     }
 
-    private fun executeMigrationChunk(conn: JdbcConnection, offset: BigInteger): Long {
+    private fun executeMigrationChunk(scope: Scope, conn: JdbcConnection, offset: BigInteger): Long {
+        var stmt: PreparedStatement? = null
         try {
             // Fetch only the rows where not all values are synced yet
             val query = """
@@ -198,20 +202,22 @@ class BatchMigrationChange : CustomTaskChange, CustomTaskRollback {
                 WHERE rowId IN
                 (SELECT rowId
                       FROM $fullName
-                      ORDER BY $orderClauseString
-                      OFFSET $offset ROWS
-                      FETCH NEXT $chunkSize ROWS ONLY
+                      WHERE $whereClauseString
+                      FETCH FIRST $chunkSize ROWS ONLY
                 )
-            """.trimIndent()
+            """.trimIndent() //                       ORDER BY $orderClauseString
 
-            val stmt = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)
+            stmt = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)
+            scope.getLog(javaClass).info("Executing $stmt with query $query")
             val affectedRows = stmt.executeLargeUpdate()
             // serves as no-op when auto-commit = true
             conn.commit()
-
+            scope.getLog(javaClass).info("Committed")
             return affectedRows
         } catch (e: SQLException) {
             throw CustomChangeException("Could not update $tableName in batch", e)
+        } finally {
+            stmt?.close()
         }
     }
 
