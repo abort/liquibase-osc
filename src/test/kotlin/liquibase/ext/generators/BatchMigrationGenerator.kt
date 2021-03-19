@@ -48,10 +48,6 @@ object BatchMigrationGenerator {
         val to = colGen.filterNot { l -> fromSet.any { it in l.toSet() } }.next(rs)
         change.toColumns = to.toColumnList()
 
-        val toSet = to.toSet()
-        // Make sure no pk is in the to columns
-        change.primaryKeyColumns = colGen.filterNot { l -> l.any { it in toSet } }.next(rs).toColumnList()
-
         change
     }
 
@@ -69,22 +65,20 @@ object BatchMigrationGenerator {
         val minBound = Arb.int(0, 5).filter { it <= upperBound }.next(rs)
         change.fromColumns = fixedColumnStringSequenceGenerator(minBound, upperBound).orNull().next(rs)
         change.toColumns = fixedColumnStringSequenceGenerator(minBound, upperBound).orNull().next(rs)
-        change.primaryKeyColumns = fixedColumnStringSequenceGenerator(minBound, upperBound).orNull().next(rs)
         change.sleepTime = Arb.long(-100L, 10000L).orNull().next(rs)
         change
     }
 
     val invalidMigrationGenerator = sampleMigrationGenerator.filter { c: BatchMigrationChange ->
-        val simplePredicate = c.primaryKeyColumns.isNullOrEmpty() || c.fromColumns.isNullOrEmpty() ||
+        val simplePredicate = c.fromColumns.isNullOrEmpty() ||
             c.toColumns.isNullOrEmpty() || (c.chunkSize ?: -1L) <= 0L || c.sleepTime?.let { it < 0L } ?: false
         if (simplePredicate) return@filter true
         else {
             val from = c.fromColumns!!.split(",")
             val to = c.toColumns!!.split(",").toSet()
-            val primaryKeys = c.primaryKeyColumns!!.split(",").toSet()
             // check whether from and to columns are equal somewhere or crossing
             // check whether any to column is in primary keys
-            from.size != to.size || from.any { it in to } || to.any { it in primaryKeys }
+            from.size != to.size || from.any { it in to }
         }
     }
 

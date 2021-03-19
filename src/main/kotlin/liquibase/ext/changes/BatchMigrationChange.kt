@@ -10,7 +10,6 @@ import liquibase.exception.CustomChangeException
 import liquibase.exception.ValidationErrors
 import liquibase.resource.ResourceAccessor
 import liquibase.structure.core.Column
-import java.math.BigInteger
 import java.sql.DatabaseMetaData
 import java.sql.PreparedStatement
 import java.sql.RowIdLifetime
@@ -24,7 +23,7 @@ import java.sql.Statement
  */
 class BatchMigrationChange : CustomTaskChange, CustomTaskRollback {
     companion object {
-        const val DefaultChunkSize = 250L
+        const val DefaultChunkSize = 1000L
         const val DefaultSleepTime = 0L
     }
 
@@ -33,7 +32,6 @@ class BatchMigrationChange : CustomTaskChange, CustomTaskRollback {
     var tableName: String? = null
     var fromColumns: String? = null
     var toColumns: String? = null
-    var primaryKeyColumns: String? = null // consider calling index columns
     var chunkSize: Long? = DefaultChunkSize
     var sleepTime: Long? = DefaultSleepTime
 
@@ -51,21 +49,13 @@ class BatchMigrationChange : CustomTaskChange, CustomTaskRollback {
         toArray!!.zip(fromArray!!).joinToString(separator = ", ") { (f, t) -> "${f.name} = ${t.name}" }
     }
 
-    private val pkArray: Array<Column>? by lazy {
-        Column.arrayFromNames(primaryKeyColumns)
-    }
-
-    private val orderClauseString: String by lazy {
-        pkArray!!.joinToString(separator = ",") { x -> x.name }
-    }
-
     private val fullName: String by lazy {
         OracleDatabase().escapeTableName(catalogName, schemaName, tableName)
     }
 
     private val whereClauseString: String by lazy {
-        toArray!!.zip(fromArray!!).joinToString(separator = ", ") { (f, t) ->
-            "${f.name} IS NULL and ${t.name} IS NOT NULL"
+        toArray!!.zip(fromArray!!).joinToString(separator = " OR ") { (f, t) ->
+            "(${f.name} IS NULL and ${t.name} IS NOT NULL)"
         }
     }
 
@@ -80,67 +70,73 @@ class BatchMigrationChange : CustomTaskChange, CustomTaskRollback {
         Scope.getCurrentScope().getLog(javaClass).info("Initialized BatchMigrationChange")
     }
 
-    @Suppress("ComplexMethod", "ReturnCount", "ForbiddenComment")
     override fun validate(db: Database): ValidationErrors {
-        // TODO: consider validating for bijection
         val errors = ValidationErrors()
-        if (db !is OracleDatabase) {
+        // make use of short-circuit
+        if (db !is OracleDatabase ||
+            errors.checkAndAddSimpleErrors() ||
+            errors.checkAndAddDuplicateErrors(fromArray!!, "fromColumns") ||
+            errors.checkAndAddDuplicateErrors(toArray!!, "toColumns") ||
+            errors.checkAndAddNEqFromAndTo() ||
+            errors.checkAndAddCrossingColumns()
+        ) {
             return errors
-        }
-
-        if (tableName.isNullOrEmpty()) {
-            errors.addError("table is not provided")
-        }
-
-        val nullCount = setOf(fromColumns, toColumns).filter { it.isNullOrEmpty() }.count()
-        if (nullCount >= 1) {
-            errors.addError("Both fromColumns and toColumns need to be provided")
-        }
-
-        if (errors.hasErrors()) {
-            return errors
-        }
-
-        if (chunkSize == null || chunkSize!! <= 0L) {
-            errors.addError("chunkSize should be provided as a positive long")
-        }
-
-        if (primaryKeyColumns.isNullOrEmpty()) {
-            errors.addError("Primary keys are not defined")
-        }
-
-        if (fromArray?.toSet()?.size != fromArray?.size) {
-            errors.addError("Duplicate elements in fromColumns")
-        }
-
-        val toSet = toArray!!.toSet()
-        if (toSet.size != toArray!!.size) {
-            errors.addError("Duplicate elements in toColumns")
-        }
-
-        if (fromArray!!.size != toArray!!.size) {
-            errors.addError("fromColumns and toColumns require a 1:1 relationship (unequal column count)")
-        } else {
-            fromArray!!.forEachIndexed { i: Int, col: Column ->
-                if (col == toArray!![i]) {
-                    errors.addError("Column $col should not be migrated to itself")
-                } else if (col in toSet) {
-                    errors.addError("Migration of $col crosses, which is not possible")
-                }
-            }
-        }
-
-        pkArray?.filter { it in toSet }?.forEach { pk ->
-            errors.addError("Can not migrate to current primary key: $pk")
         }
 
         if (sleepTime == null) {
             sleepTime = 0L
-        } else if (sleepTime!! < 0L) {
-            errors.addError("Sleep time can not be negative")
         }
 
         return errors
+    }
+
+    private fun ValidationErrors.checkAndAddCrossingColumns(): Boolean = run {
+        val toSet = toArray!!.toSet()
+        fromArray!!.forEachIndexed { i: Int, col: Column ->
+            if (col == toArray!![i]) {
+                addError("Column $col should not be migrated to itself")
+            } else if (col in toSet) {
+                addError("Migration of $col crosses, which is not possible")
+            }
+        }
+        hasErrors()
+    }
+
+    private fun ValidationErrors.checkAndAddNEqFromAndTo(): Boolean = run {
+        val unequal = fromArray!!.size != toArray!!.size
+        if (unequal) {
+            addError("Both in and output columns require a 1:1 relationship")
+        }
+        unequal
+    }
+
+    private fun ValidationErrors.checkAndAddSimpleErrors(): Boolean = run {
+        if (tableName.isNullOrEmpty()) {
+            addError("Table is not provided")
+        }
+
+        val nullCount = setOf(fromColumns, toColumns).filter { it.isNullOrEmpty() }.count()
+        if (nullCount >= 1) {
+            addError("Both fromColumns and toColumns need to be provided")
+        }
+
+        if (chunkSize == null || chunkSize!! <= 0L) {
+            addError("chunkSize should be provided as a positive long")
+        }
+
+        if (sleepTime != null && sleepTime!! < 0L) {
+            addError("sleepTime can not be negative")
+        }
+
+        hasErrors()
+    }
+
+    private fun ValidationErrors.checkAndAddDuplicateErrors(arr: Array<Column>, name: String): Boolean = run {
+        val equal = arr.toSet().size != arr.size
+        if (equal) {
+            addError("Duplicate elements in $name")
+        }
+        equal
     }
 
     override fun execute(db: Database) {
@@ -175,13 +171,11 @@ class BatchMigrationChange : CustomTaskChange, CustomTaskRollback {
             }
 
             var running = true
-            var offset = BigInteger.ZERO
             while (running) {
-                val n = executeMigrationChunk(scope, conn, offset)
+                val n = executeMigrationChunk(scope, conn)
                 if (n == 0L) {
                     running = false
                 } else {
-                    offset = offset.add(chunkSize!!.toBigInteger())
                     if (sleepTime != null && sleepTime!! > 0L) {
                         Thread.sleep(sleepTime!!)
                     }
@@ -192,7 +186,7 @@ class BatchMigrationChange : CustomTaskChange, CustomTaskRollback {
         }
     }
 
-    private fun executeMigrationChunk(scope: Scope, conn: JdbcConnection, offset: BigInteger): Long {
+    private fun executeMigrationChunk(scope: Scope, conn: JdbcConnection): Long {
         var stmt: PreparedStatement? = null
         try {
             // Fetch only the rows where not all values are synced yet
@@ -205,7 +199,7 @@ class BatchMigrationChange : CustomTaskChange, CustomTaskRollback {
                       WHERE $whereClauseString
                       FETCH FIRST $chunkSize ROWS ONLY
                 )
-            """.trimIndent() //                       ORDER BY $orderClauseString
+            """.trimIndent()
 
             stmt = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)
             scope.getLog(javaClass).info("Executing $stmt with query $query")
@@ -231,22 +225,6 @@ class BatchMigrationChange : CustomTaskChange, CustomTaskRollback {
         }
     }
 
-//    private fun queryMaxRowId(conn: JdbcConnection): RowId {
-//        val query = "SELECT max(rowId) as rws from :table FETCH FIRST 1 ROWS ONLY"
-//        try {
-//            val stmt = conn.prepareStatement(query)
-//            stmt.setString(1, table)
-//
-//            val rs = stmt.executeQuery()
-//            rs.next()
-//            val rows = rs.getRowId("rws")
-//            print("Retrieved row count for $table: $rows")
-//            return rows
-//        } catch (e: SQLException) {
-//            throw CustomChangeException("Can not count amount of rows in table $table", e)
-//        }
-//    }
-
     // We do not need rollbacks for this as it is not semantics, even though we 'could' by an inverse operation
     override fun rollback(db: Database) {
         Scope.getCurrentScope().getLog(javaClass).info("Rollback requested: no-op result")
@@ -254,7 +232,7 @@ class BatchMigrationChange : CustomTaskChange, CustomTaskRollback {
 
     override fun toString(): String {
         return "BatchMigrationChange(table=$tableName, fromColumns=$fromColumns, " +
-            "toColumns=$toColumns, primaryKeyColumns=$primaryKeyColumns, " +
+            "toColumns=$toColumns, " +
             "chunkSize=$chunkSize, sleepTime=$sleepTime)"
     }
 }

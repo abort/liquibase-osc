@@ -24,7 +24,6 @@ import java.sql.SQLException
 import java.sql.Statement
 import liquibase.ext.generators.BatchMigrationGenerator as gen
 
-@Suppress("EmptyCatchBlock")
 class BatchMigrationChangeTest : ShouldSpec({
     val otherDatabases = listOf(PostgresDatabase(), MySQLDatabase(), MSSQLDatabase(), MariaDBDatabase()).exhaustive()
 
@@ -226,13 +225,4 @@ class BatchMigrationChangeTest : ShouldSpec({
             }
         }
     }
-
-//    private fun disectStatement(sql : String, migration : BatchMigrationChange) : Unit {
-//        var s = sql.trim()
-//        assertTrue(s.startsWith("update ", ignoreCase = true))
-//
-//        s.drop(len)
-//
-//        assertEquals("`${migration.table}`", )
-//    }
 })

@@ -67,7 +67,7 @@ complexity:
   active: true
   ComplexCondition:
     active: true
-    threshold: 4
+    threshold: 7
     excludes: ['**/test/**' ]
   ComplexInterface:
     active: false
@@ -120,11 +120,11 @@ complexity:
   TooManyFunctions:
     active: true
     excludes: ['**/test/**' ]
-    thresholdInFiles: 11
-    thresholdInClasses: 11
-    thresholdInInterfaces: 11
-    thresholdInObjects: 11
-    thresholdInEnums: 11
+    thresholdInFiles: 16
+    thresholdInClasses: 16
+    thresholdInInterfaces: 16
+    thresholdInObjects: 16
+    thresholdInEnums: 16
     ignoreDeprecated: false
     ignorePrivate: false
     ignoreOverridden: false
@@ -143,6 +143,7 @@ empty-blocks:
   EmptyCatchBlock:
     active: true
     allowedExceptionNameRegex: '_|(ignore|expected).*'
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**']
   EmptyClassBlock:
     active: true
   EmptyDefaultConstructor:

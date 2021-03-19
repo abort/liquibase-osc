@@ -38,7 +38,6 @@ class BatchMigrationIntegrationTest {
         assertEquals("c_phone", customChangeWrapper.getParamValue("fromColumns"))
         assertEquals("c_phone_new", customChangeWrapper.getParamValue("toColumns"))
         assertEquals("1000", customChangeWrapper.getParamValue("chunkSize"))
-        assertEquals("C_W_ID, C_D_ID, C_ID", customChangeWrapper.getParamValue("primaryKeyColumns"))
         assertEquals(BatchMigrationChange::class.java, customChangeWrapper.customChange.javaClass)
 
         val m = customChangeWrapper.customChange as BatchMigrationChange
@@ -59,6 +58,5 @@ class BatchMigrationIntegrationTest {
         assertEquals(1000L, m.chunkSize)
         assertEquals("c_phone", m.fromColumns)
         assertEquals("c_phone_new", m.toColumns)
-        assertEquals("C_W_ID, C_D_ID, C_ID", m.primaryKeyColumns)
     }
 }

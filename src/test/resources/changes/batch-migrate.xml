@@ -11,7 +11,6 @@
             <param name="fromColumns" value="c_phone" />
             <param name="toColumns" value="c_phone_new" />
             <param name="chunkSize" value="1000" />
-            <param name="primaryKeyColumns" value="C_W_ID, C_D_ID, C_ID" />
         </customChange>
     </changeSet>
 </databaseChangeLog>
