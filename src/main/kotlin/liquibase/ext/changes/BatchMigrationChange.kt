@@ -54,9 +54,13 @@ class BatchMigrationChange : CustomTaskChange, CustomTaskRollback {
     }
 
     private val whereClauseString: String by lazy {
-        toArray!!.zip(fromArray!!).joinToString(separator = " OR ") { (f, t) ->
-            "(${f.name} IS NULL and ${t.name} IS NOT NULL)"
-        }
+        val t = toArray!!.first()
+        val f = fromArray!!.first()
+
+        "(${t.name} IS NULL and ${f.name} IS NOT NULL)"
+//        toArray!!.zip(fromArray!!).joinToString(separator = " OR ") { (f, t) ->
+//            "(${f.name} IS NULL and ${t.name} IS NOT NULL)"
+//        }
     }
 
     override fun setFileOpener(ra: ResourceAccessor?) {
