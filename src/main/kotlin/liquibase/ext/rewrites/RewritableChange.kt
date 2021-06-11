@@ -9,8 +9,8 @@ import liquibase.statement.SqlStatement
 interface RewritableChange {
     companion object {
         private const val OracleRequiredProductInfix: String = "enterprise edition"
-        private const val OracleRequiredMajorVersion: Int = 12
-        private const val PropertyRewriteDDL: String = "auto-online-ddl"
+        private const val OracleRequiredMajorVersion: Int = 19
+        public const val PropertyRewriteDDL: String = "auto-online-ddl"
         const val AutoRewriteByDefault: Boolean = false
     }
 

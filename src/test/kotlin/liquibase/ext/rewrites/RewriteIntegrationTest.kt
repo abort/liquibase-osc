@@ -125,8 +125,8 @@ abstract class RewriteIntegrationTest(
         generator.generateSql(change, db).joinToString(separator = "\n") { it.toSql() }.trim()
 
     protected fun getCompatibleOracleSpy() = spyk<OracleDatabase>().apply {
-        every { databaseMajorVersion } returns 12
-        every { databaseProductVersion } returns "Oracle Database 12c Enterprise Edition Release"
+        every { databaseMajorVersion } returns 19
+        every { databaseProductVersion } returns "Oracle Database 19c Enterprise Edition Release"
     }
 
     protected fun getIncompatibleOracleSpy() = spyk<OracleDatabase>().apply {

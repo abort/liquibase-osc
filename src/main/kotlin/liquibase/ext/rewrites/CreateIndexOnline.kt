@@ -6,6 +6,7 @@ import liquibase.change.core.CreateIndexChange
 import liquibase.database.Database
 import liquibase.statement.SqlStatement
 import liquibase.statement.core.CreateIndexStatement
+import liquibase.statement.core.DropIndexStatement
 
 @DatabaseChange(
     name = "createIndex",
@@ -18,6 +19,14 @@ class CreateIndexOnline : CreateIndexChange(), RewritableChange {
         super.generateStatements(db).rewriteStatements(changeSet, db) {
             when (it) {
                 is CreateIndexStatement -> CreateIndexOnlineWrapperStatement(it)
+                else -> it
+            }
+        }
+
+    override fun generateRollbackStatements(db: Database): Array<SqlStatement> =
+        super.generateRollbackStatements(db).rewriteStatements(changeSet, db) {
+            when (it) {
+                is DropIndexStatement -> DropIndexOnlineWrapperStatement(it)
                 else -> it
             }
         }
