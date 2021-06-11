@@ -22,9 +22,6 @@ interface RewritableChange {
         x?.toBoolean() ?: AutoRewriteByDefault
     }
 
-    /**
-     * TODO: might make it more safe by using LiquibaseUtil.getBuildVersion to check if it is compatible
-     */
     fun Array<SqlStatement>.rewriteStatements(
         changeSet: ChangeSet?,
         db: Database,

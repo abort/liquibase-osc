@@ -9,7 +9,6 @@ import liquibase.database.jvm.JdbcConnection
 import liquibase.parser.ChangeLogParser
 import liquibase.parser.ChangeLogParserFactory
 import liquibase.resource.ClassLoaderResourceAccessor
-import liquibase.sqlgenerator.SqlGeneratorFactory
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.sql.DatabaseMetaData
@@ -22,7 +21,6 @@ class BatchMigrationIntegrationTest {
     }
 
     private val accessor = ClassLoaderResourceAccessor()
-    private val generator: SqlGeneratorFactory = SqlGeneratorFactory.getInstance()
 
     private val parserFactory: ChangeLogParserFactory = ChangeLogParserFactory.getInstance()
     private val xmlParser: ChangeLogParser = parserFactory.getParser(ChangeLogExtensionXml, accessor)
