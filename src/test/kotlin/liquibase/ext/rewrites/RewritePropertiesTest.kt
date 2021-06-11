@@ -7,6 +7,7 @@ import io.kotest.property.arbitrary.bind
 import io.kotest.property.arbitrary.choice
 import io.kotest.property.arbitrary.filter
 import io.kotest.property.arbitrary.int
+import io.kotest.property.arbitrary.map
 import io.kotest.property.arbitrary.merge
 import io.kotest.property.arbitrary.next
 import io.kotest.property.arbitrary.of
@@ -59,7 +60,6 @@ class RewritePropertiesTest : StringSpec({
         )
     )
 
-    val combinedChangesArb = supportedChangesArb.merge(unsupportedChangesArb)
     val alphaNumArb = Arb.stringPattern("[a-zA-Z0-9]+")
     val columnsArb = arbitrary { rs ->
         val n = Arb.int(1, 3).next(rs)
@@ -120,6 +120,14 @@ class RewritePropertiesTest : StringSpec({
         every { databaseMajorVersion } returns 12
         every { databaseProductVersion } returns "Oracle Database 12c Enterprise Edition Release"
     }
+
+    fun createOracleSpy(ver: Int) = spyk<OracleDatabase>().apply {
+        every { databaseMajorVersion } returns ver
+        every { databaseProductVersion } returns "Oracle Database $ver Enterprise Edition Release"
+    }
+
+    val compatibleDatabases = Arb.int(19, 30).map { createOracleSpy(it) }
+    val incompatibleDatabases = Arb.int(1, 18).map { createOracleSpy(it) }
     val compatibleOracleSpy = spyk<OracleDatabase>().apply {
         every { databaseMajorVersion } returns 19
         every { databaseProductVersion } returns "Oracle Database 19c Enterprise Edition Release"
@@ -130,14 +138,14 @@ class RewritePropertiesTest : StringSpec({
     fun Change.toRollbackSql(db: Database) = generator.generateSql(this.generateRollbackStatements(db), db).map { it.toSql() }
 
     val changeArb = Arb.choice(createIndexCombinedArb, dropColumnCombinedArb)
-    "rewrites should only occur when Oracle is of version 19c" {
-        checkAll(changeArb) { (c, off) ->
+    "rewrites should only occur when Oracle is of at least version 19" {
+        checkAll(compatibleDatabases, incompatibleDatabases, changeArb) { compDb, incompDb, (c, off) ->
             // equality and hashcode implementation are not enforced for changes, hence check on Sql
-            val rewritten = c.toSql(compatibleOracleSpy)
-            val nonRewritten = c.toSql(incompatibleOracleSpy)
-            val original = off.toSql(incompatibleOracleSpy)
+            val rewritten = c.toSql(compDb)
+            val nonRewritten = c.toSql(incompDb)
+            val original = off.toSql(incompDb)
 
-            assertThat("statements should be rewritten for Oracle 19c only", rewritten, not(hasItem(`in`(nonRewritten))))
+            assertThat("statements should be rewritten for Oracle >=19 only", rewritten, not(hasItem(`in`(nonRewritten))))
             assertThat("all non-rewritten statements are equivalent to the original", nonRewritten, hasItem(`in`(original)))
         }
     }
@@ -149,11 +157,16 @@ class RewritePropertiesTest : StringSpec({
             assertThat("all non-rewritten statements are equivalent to the original", nonRewritten, hasItem(`in`(original)))
         }
     }
-    "rollback rewrites should not occur when Oracle is not version 19c" {
-        checkAll(changeArb.filter { it.first.supportsRollback(compatibleOracleSpy) }) { (c, off) ->
-            val nonRewrittenRollback = c.toRollbackSql(incompatibleOracleSpy)
-            val originalRollback = off.toRollbackSql(incompatibleOracleSpy)
-            assertThat("none of the statements should be rewritten", nonRewrittenRollback, hasItem(`in`(originalRollback)))
+    "rollback rewrites should not occur when Oracle is not version 19" {
+        checkAll(incompatibleDatabases, changeArb) { db, (c, off) ->
+            val hasRollback = off.supportsRollback(db)
+            assertEquals(hasRollback, c.supportsRollback(db), "Support of rollback should be equal to original")
+
+            if (hasRollback) {
+                val nonRewrittenRollback = c.toRollbackSql(db)
+                val originalRollback = off.toRollbackSql(db)
+                assertThat("none of the statements should be rewritten", nonRewrittenRollback, hasItem(`in`(originalRollback)))
+            }
         }
     }
     "rollbacks for Online rewritten statements should also use Online DDL" {
@@ -173,6 +186,11 @@ class RewritePropertiesTest : StringSpec({
                 val originalRollback = off.toRollbackSql(db)
                 assertThat("none of the statements should be rewritten", nonRewrittenRollback, hasItem(`in`(originalRollback)))
             }
+        }
+    }
+    "checksums for rewritten statements are identical to the original statement" {
+        checkAll(changeArb) { (c, off) ->
+            assertEquals(off.generateCheckSum(), c.generateCheckSum(), "Checksum of rewrite and original should be equal")
         }
     }
 })
