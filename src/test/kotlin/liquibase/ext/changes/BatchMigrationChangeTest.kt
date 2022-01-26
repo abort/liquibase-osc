@@ -8,13 +8,10 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk
 import io.mockk.verify
-import liquibase.database.core.MSSQLDatabase
-import liquibase.database.core.MariaDBDatabase
-import liquibase.database.core.MySQLDatabase
 import liquibase.database.core.OracleDatabase
-import liquibase.database.core.PostgresDatabase
 import liquibase.database.jvm.JdbcConnection
 import liquibase.exception.CustomChangeException
+import liquibase.ext.generators.ChangeGenerators.otherDatabases
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.assertDoesNotThrow
 import java.sql.DatabaseMetaData
@@ -25,8 +22,6 @@ import java.sql.Statement
 import liquibase.ext.generators.BatchMigrationGenerator as gen
 
 class BatchMigrationChangeTest : ShouldSpec({
-    val otherDatabases = listOf(PostgresDatabase(), MySQLDatabase(), MSSQLDatabase(), MariaDBDatabase()).exhaustive()
-
     context("Validation") {
         should("result in errors when not all arguments meet the constraints") {
             forAll(gen.invalidMigrationGenerator) { c ->
@@ -209,7 +204,6 @@ class BatchMigrationChangeTest : ShouldSpec({
                 val slot = mutableListOf<String>()
                 // Should always be 5 updates
                 val tail = kotlin.math.max(n / 2L, 1L)
-                val totalRows = 3 * n + tail
 
                 every { db.connection } returns conn
                 every { conn.isClosed } returns false
